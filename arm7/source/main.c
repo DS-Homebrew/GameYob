@@ -110,7 +110,7 @@ int main() {
 
     installGameboySoundFIFO();
 
-    if(__dsimode) {
+    if(isDSiMode()) {
         fifoSetValue32Handler(FIFO_CAMERA, i2cFifoHandler, NULL);
     }
 

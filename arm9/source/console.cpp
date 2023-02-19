@@ -971,7 +971,7 @@ void iprintfColored(int palette, const char *format, ...) {
 
 
 int checkRumble() {
-    if (__dsimode)
+    if (isDSiMode())
         return 0;
 
     sysSetCartOwner(BUS_OWNER_ARM9);
@@ -990,7 +990,7 @@ int checkRumble() {
 }
 
 int checkCamera() {
-    if (__dsimode) {
+    if (isDSiMode()) {
         return 2;
     }
     return 0;
