@@ -42,6 +42,8 @@ u8 ramSize;
 u8 mapper;
 u8 cgbFlag;
 u8 romSize;
+u8 romChecksum;
+u16 romLicensee;
 
 int keysPressed=0;
 int lastKeysPressed=0;
@@ -502,6 +504,10 @@ int loadRom(char* f)
     romSize = romSlot0[0x148];
     ramSize = romSlot0[0x149];
     mapper  = romSlot0[0x147];
+    romChecksum = romSlot0[0x14D];
+    romLicensee = romSlot0[0x14B];
+    if (romLicensee == 0x33)
+        romLicensee = romSlot0[0x144]<<8 | romSlot0[0x145];
 
     int nameLength = 16;
     if (cgbFlag == 0x80 || cgbFlag == 0xc0)

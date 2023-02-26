@@ -44,6 +44,8 @@ bool autoSavingEnabled;
 
 bool printerEnabled;
 
+int cgbPaletteSelect = 0;
+
 volatile int consoleSelectedRow = -1;
 
 void (*subMenuUpdateFunc)();
@@ -213,6 +215,13 @@ void sgbModeFunc(int value) {
     sgbModeOption = value;
 }
 
+void cgbPaletteFunc(int value) {
+    cgbPaletteSelect = value;
+    if (gbMode == 0 && sgbMode == false) {
+        initGFXPalette();
+    }
+}
+
 void biosEnableFunc(int value) {
     biosEnabled = value;
 }
@@ -354,7 +363,7 @@ struct MenuOption {
     const char* name;
     void (*function)(int);
     int numValues;
-    const char* values[10];
+    const char* values[15];
     int defaultSelection;
     bool enabled;
     int selection;
@@ -384,7 +393,7 @@ ConsoleSubMenu menuList[] = {
     },
     {
         "Settings",
-        8,
+        9,
         {
             {"Key Config", keyConfigFunc, 0, {}, 0},
             {"Manage Cheats", cheatFunc, 0, {}, 0},
@@ -412,12 +421,13 @@ ConsoleSubMenu menuList[] = {
     },
     {
         "GB Modes",
-        4,
+        5,
         {
             {"GBC Bios", biosEnableFunc, 3, {"Off","GB Only","On"}, 1},
             {"Detect GBA", gbaModeFunc, 2, {"Off","On"}, 0},
             {"GBC Mode", gameboyModeFunc, 3, {"Off","If Needed","On"}, 2},
-            {"SGB Mode", sgbModeFunc, 3, {"Off","Prefer GBC","Prefer SGB"}, 1}
+            {"SGB Mode", sgbModeFunc, 3, {"Off","Prefer GBC","Prefer SGB"}, 1},
+            {"GB Palette", cgbPaletteFunc, 13, CGB_SELECT_NAMES, 0}
         }
     },
     {

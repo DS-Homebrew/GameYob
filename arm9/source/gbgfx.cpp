@@ -576,33 +576,28 @@ void initGFX()
     refreshGFX();
 }
 
+void pickGBPalette(u8* SPR0, u8* SPR1, u8* BGP, u8 index, u8 shuffle) {
+    index *= 3;
+    *BGP = CGB_PAL_OFFSETS[index + 2];
+    *SPR0 = CGB_PAL_OFFSETS[index + 2];
+    *SPR1 = CGB_PAL_OFFSETS[index + 2];
+
+    if (shuffle & 1)
+        *SPR0 = CGB_PAL_OFFSETS[index];
+    if (shuffle & 2)
+        *SPR1 = CGB_PAL_OFFSETS[index];
+    if (shuffle & 4)
+        *SPR1 = CGB_PAL_OFFSETS[index + 1];
+}
+
 void initGFXPalette() {
     memset(bgPaletteData, 0xff, 0x40);
     if (gbMode == GB) {
-        sprPaletteData[0] = 0xff;
-        sprPaletteData[1] = 0xff;
-        sprPaletteData[2] = 0x15|((0x15&7)<<5);
-        sprPaletteData[3] = (0x15>>3)|(0x15<<2);
-        sprPaletteData[4] = 0xa|((0xa&7)<<5);
-        sprPaletteData[5] = (0xa>>3)|(0xa<<2);
-        sprPaletteData[6] = 0;
-        sprPaletteData[7] = 0;
-        sprPaletteData[8] = 0xff;
-        sprPaletteData[9] = 0xff;
-        sprPaletteData[10] = 0x15|((0x15&7)<<5);
-        sprPaletteData[11] = (0x15>>3)|(0x15<<2);
-        sprPaletteData[12] = 0xa|((0xa&7)<<5);
-        sprPaletteData[13] = (0xa>>3)|(0xa<<2);
-        sprPaletteData[14] = 0;
-        sprPaletteData[15] = 0;
-        bgPaletteData[0] = 0xff;
-        bgPaletteData[1] = 0xff;
-        bgPaletteData[2] = 0x15|((0x15&7)<<5);
-        bgPaletteData[3] = (0x15>>3)|(0x15<<2);
-        bgPaletteData[4] = 0xa|((0xa&7)<<5);
-        bgPaletteData[5] = (0xa>>3)|(0xa<<2);
-        bgPaletteData[6] = 0;
-        bgPaletteData[7] = 0;
+        u8 SPR0, SPR1, BGP;
+        pickGBPalette(&SPR0, &SPR1, &BGP, CGB_SELECT_IDX[cgbPaletteSelect], CGB_SELECT_SHUF[cgbPaletteSelect]);
+        memcpy(&sprPaletteData[0], &CGB_PALETTES[SPR0], sizeof(u16)*4);
+        memcpy(&sprPaletteData[8], &CGB_PALETTES[SPR1], sizeof(u16)*4);
+        memcpy(&bgPaletteData[0],  &CGB_PALETTES[BGP], sizeof(u16)*4);
     }
     // This prevents some flickering when loading roms
     for (int i=0; i<8; i++)
