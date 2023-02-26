@@ -7,6 +7,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "libfat_fake.h"
 #include "inputhelper.h"
@@ -66,7 +67,7 @@ void initInput()
     fatInit(FAT_CACHE_SIZE, true);
     //fatInitDefault();
 
-    if (__dsimode)
+    if (isDSiMode())
         maxLoadedRomBanks = 512; // 8 megabytes
     else
         maxLoadedRomBanks = 128; // 2 megabytes
@@ -407,7 +408,7 @@ end:
 }
 
 void writeConfigFile() {
-    FILE* file = fopen("/gameyobds.ini", "w");
+    FILE* file = fopen("/_nds/gameyobds.ini", "w");
     fiprintf(file, "[general]\n");
     generalPrintConfig(file);
     fiprintf(file, "[console]\n");
@@ -464,11 +465,7 @@ int loadRom(char* f)
     //int rawRomSize = ftell(romFile);
     rewind(romFile);
 
-
-    if (numRomBanks <= maxLoadedRomBanks)
-        numLoadedRomBanks = numRomBanks;
-    else
-        numLoadedRomBanks = maxLoadedRomBanks;
+    numLoadedRomBanks = Math.min(numRomBanks,maxLoadedRomBanks);
 
     romSlot0 = romBankSlots;
     romSlot1 = romBankSlots + 0x4000;
@@ -519,8 +516,7 @@ int loadRom(char* f)
     if (gbsMode) {
         MBC = MBC5;
         loadCheats(""); // Unloads previous cheats
-    }
-    else {
+    } else {
         switch (mapper) {
             case 0: case 8: case 9:
                 MBC = MBC0;
