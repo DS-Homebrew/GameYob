@@ -7,7 +7,6 @@
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <math.h>
 
 #include "libfat_fake.h"
 #include "inputhelper.h"
@@ -465,7 +464,7 @@ int loadRom(char* f)
     //int rawRomSize = ftell(romFile);
     rewind(romFile);
 
-    numLoadedRomBanks = Math.min(numRomBanks,maxLoadedRomBanks);
+    numLoadedRomBanks = std::min(numRomBanks,maxLoadedRomBanks);
 
     romSlot0 = romBankSlots;
     romSlot1 = romBankSlots + 0x4000;
