@@ -576,33 +576,159 @@ void initGFX()
     refreshGFX();
 }
 
+void pickGBPalette(u8* SPR0, u8* SPR1, u8* BGP, u8 index, u8 shuffle) {
+    index *= 3;
+    *BGP = CGB_PAL_OFFSETS[index + 2];
+    *SPR0 = CGB_PAL_OFFSETS[index + 2];
+    *SPR1 = CGB_PAL_OFFSETS[index + 2];
+
+    if (shuffle & 1)
+        *SPR0 = CGB_PAL_OFFSETS[index];
+    if (shuffle & 2)
+        *SPR1 = CGB_PAL_OFFSETS[index];
+    if (shuffle & 4)
+        *SPR1 = CGB_PAL_OFFSETS[index + 1];
+}
+
+void determineGBRomPalette(u8* SPR0, u8* SPR1, u8* BGP) {
+    // default palette
+    u8 shuffle = 0x03;
+    u8 index = 0x1C;
+    char fourthLetter = getRomTitle()[3];
+
+    if (romLicensee == 0x01 || romLicensee == 0x3031) {
+        switch (romChecksum) {
+            // ambiguous cases first
+            case 0xB3:
+                if (fourthLetter == 'B') {
+                    index = 8; shuffle = 0b101;
+                } else if (fourthLetter == 'U') {
+                    index = 0; shuffle = 0b011;
+                } else if (fourthLetter == 'R') {
+                    index = 5; shuffle = 0b100;
+                }
+                break;
+            case 0x46:
+                if (fourthLetter == 'E') {
+                    index = 10; shuffle = 0b011;
+                } else if (fourthLetter == 'R') {
+                    index = 20; shuffle = 0b101;
+                }
+                break;
+            case 0x28:
+                if (fourthLetter == 'F') {
+                    index = 14; shuffle = 0b011;
+                } else if (fourthLetter == 'A') {
+                    index = 19; shuffle = 0b000;
+                }
+                break;
+            case 0xA5:
+                if (fourthLetter == 'A') {
+                    index = 19; shuffle = 0b000;
+                } else if (fourthLetter == 'R') {
+                    index = 18; shuffle = 0b011;
+                }
+                break;
+            case 0xC6:
+                if (fourthLetter == 'A') {
+                    index = 0; shuffle = 0b101;
+                } else if (fourthLetter == ' ') {
+                    index = 28; shuffle = 0b011;
+                }
+                break;
+            case 0xD3:
+                if (fourthLetter == 'R') {
+                    index = 13; shuffle = 0b001;
+                } else if (fourthLetter == 'I') {
+                    index = 21; shuffle = 0b101;
+                }
+                break;
+            case 0x27:
+                if (fourthLetter == 'B') {
+                    index = 8; shuffle = 0b101;
+                } else if (fourthLetter == 'N') {
+                    index = 14; shuffle = 0b101;
+                }
+                break;
+            case 0x61:
+                if (fourthLetter == 'E') {
+                    index = 11; shuffle = 0b001;
+                } else if (fourthLetter == 'A') {
+                    index = 14; shuffle = 0b101;
+                }
+                break;
+            case 0x18:
+                if (fourthLetter == 'K') {
+                    index = 12; shuffle = 0b101;
+                } else if (fourthLetter == 'I') {
+                    index = 28; shuffle = 0b011;
+                }
+                break;
+            case 0x66:
+                if (fourthLetter == 'E') {
+                    index = 4; shuffle = 0b011;
+                } else if (fourthLetter == 'L') {
+                    index = 28; shuffle = 0b011;
+                }
+                break;
+            case 0x6A:
+                if (fourthLetter == 'K') {
+                    index = 12; shuffle = 0b101;
+                } else if (fourthLetter == 'I') {
+                    index = 5; shuffle = 0b011;
+                }
+                break;
+            case 0xBF:
+                if (fourthLetter == ' ') {
+                    index = 13; shuffle = 0b011;
+                } else if (fourthLetter == 'C') {
+                    index = 2; shuffle = 0b101;
+                }
+                break;
+            case 0x0D:
+                if (fourthLetter == 'R') {
+                    index = 7; shuffle = 0b100;
+                } else if (fourthLetter == 'E') {
+                    index = 12; shuffle = 0b011;
+                }
+                break;
+            case 0xF4:
+                if (fourthLetter == '-') {
+                    index = 28; shuffle = 0b101;
+                } else if (fourthLetter == ' ') {
+                    index = 4; shuffle = 0b011;
+                }
+                break;
+
+            // regular cases
+            default:
+                int idx;
+                for (idx = 0; idx < 65; idx++) {
+                    if (CGB_CHECKS[idx] == romChecksum) {
+                        index = CGB_CHECK_IDX[idx] & 0b11111;
+                        shuffle = (CGB_CHECK_IDX[idx] >> 5) & 0b111;
+                        break;
+                    }
+                }
+                break;
+        }
+
+        pickGBPalette(SPR0, SPR1, BGP, index, shuffle);
+    }
+}
+
 void initGFXPalette() {
     memset(bgPaletteData, 0xff, 0x40);
     if (gbMode == GB) {
-        sprPaletteData[0] = 0xff;
-        sprPaletteData[1] = 0xff;
-        sprPaletteData[2] = 0x15|((0x15&7)<<5);
-        sprPaletteData[3] = (0x15>>3)|(0x15<<2);
-        sprPaletteData[4] = 0xa|((0xa&7)<<5);
-        sprPaletteData[5] = (0xa>>3)|(0xa<<2);
-        sprPaletteData[6] = 0;
-        sprPaletteData[7] = 0;
-        sprPaletteData[8] = 0xff;
-        sprPaletteData[9] = 0xff;
-        sprPaletteData[10] = 0x15|((0x15&7)<<5);
-        sprPaletteData[11] = (0x15>>3)|(0x15<<2);
-        sprPaletteData[12] = 0xa|((0xa&7)<<5);
-        sprPaletteData[13] = (0xa>>3)|(0xa<<2);
-        sprPaletteData[14] = 0;
-        sprPaletteData[15] = 0;
-        bgPaletteData[0] = 0xff;
-        bgPaletteData[1] = 0xff;
-        bgPaletteData[2] = 0x15|((0x15&7)<<5);
-        bgPaletteData[3] = (0x15>>3)|(0x15<<2);
-        bgPaletteData[4] = 0xa|((0xa&7)<<5);
-        bgPaletteData[5] = (0xa>>3)|(0xa<<2);
-        bgPaletteData[6] = 0;
-        bgPaletteData[7] = 0;
+        u8 SPR0, SPR1, BGP;
+        if (cgbPaletteSelect == 0) {
+            determineGBRomPalette(&SPR0, &SPR1, &BGP);
+        } else {
+            pickGBPalette(&SPR0, &SPR1, &BGP, CGB_SELECT_IDX[cgbPaletteSelect], CGB_SELECT_SHUF[cgbPaletteSelect]);
+        }
+        memcpy(&sprPaletteData[0], &CGB_PALETTES[SPR0], sizeof(u16)*4);
+        memcpy(&sprPaletteData[8], &CGB_PALETTES[SPR1], sizeof(u16)*4);
+        memcpy(&bgPaletteData[0],  &CGB_PALETTES[BGP], sizeof(u16)*4);
     }
     // This prevents some flickering when loading roms
     for (int i=0; i<8; i++)

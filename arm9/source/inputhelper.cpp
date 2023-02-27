@@ -7,7 +7,6 @@
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <math.h>
 
 #include "libfat_fake.h"
 #include "inputhelper.h"
@@ -43,6 +42,8 @@ u8 ramSize;
 u8 mapper;
 u8 cgbFlag;
 u8 romSize;
+u8 romChecksum;
+u16 romLicensee;
 
 int keysPressed=0;
 int lastKeysPressed=0;
@@ -465,7 +466,7 @@ int loadRom(char* f)
     //int rawRomSize = ftell(romFile);
     rewind(romFile);
 
-    numLoadedRomBanks = Math.min(numRomBanks,maxLoadedRomBanks);
+    numLoadedRomBanks = std::min(numRomBanks,maxLoadedRomBanks);
 
     romSlot0 = romBankSlots;
     romSlot1 = romBankSlots + 0x4000;
@@ -503,6 +504,12 @@ int loadRom(char* f)
     romSize = romSlot0[0x148];
     ramSize = romSlot0[0x149];
     mapper  = romSlot0[0x147];
+    romLicensee = romSlot0[0x14B];
+    if (romLicensee == 0x33)
+        romLicensee = romSlot0[0x144]<<8 | romSlot0[0x145];
+    romChecksum = 0;
+    for (int i=0; i<16; i++)
+        romChecksum += romSlot0[i+0x134];
 
     int nameLength = 16;
     if (cgbFlag == 0x80 || cgbFlag == 0xc0)
@@ -865,6 +872,8 @@ void printRomInfo() {
     iprintf("Cartridge type: %.2x (%s)\n", mapper, mbcName[MBC]);
     iprintf("ROM Size: %.2x (%d banks)\n", romSize, numRomBanks);
     iprintf("RAM Size: %.2x (%d banks)\n", ramSize, numRamBanks);
+    iprintf("Licensee: %04X\n", romLicensee);
+    iprintf("Checksum: %02X\n", romChecksum);
 }
 
 const int STATE_VERSION = 5;

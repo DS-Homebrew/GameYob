@@ -47,6 +47,9 @@ extern int numLoadedRomBanks;
 extern u8* romSlot0;
 extern u8* romSlot1;
 
+extern u8 romChecksum;
+extern u16 romLicensee;
+
 extern u8 buttonsPressed;
 
 extern bool suspendStateExists;
