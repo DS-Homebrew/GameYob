@@ -19,6 +19,7 @@
 #include "inputhelper.h"
 #include "common.h"
 #include "gbsnd.h"
+#include "color_lut.h"
 
 
 #define BACKDROP_COLOUR RGB15(0,0,0)
@@ -101,6 +102,8 @@ bool hblankDisabled = false;
 int scaleMode;
 int scaleFilter=1;
 u8 gfxMask;
+
+int colorCorrect=0;
 
 volatile int loadedBorderType; // This is read from hblank
 bool customBorderExists = true;
@@ -1300,6 +1303,24 @@ void drawScreen()
     }
     didVblank = false;
 
+    for (int p = 0; p < 8; p++) {
+        u16* bsrc = BG_PALETTE+p*16+5;
+        u16* bdst = BG_PALETTE+p*16+1;
+        u16* ssrc = SPRITE_PALETTE+p*16+4;
+        u16* sdst = SPRITE_PALETTE+p*16;
+        if (colorCorrect == 0) {
+            for (int i = 0; i < 4; i++) {
+                *(bdst++) = *(bsrc++);
+                *(sdst++) = *(ssrc++);
+            }
+        } else {
+            for (int i = 0; i < 4; i++) {
+                *(bdst++) = gbc_lut[*(bsrc++)];
+                *(sdst++) = gbc_lut[*(ssrc++)];
+            }
+        }
+    }
+
     sharedData->frameFlip_Gameboy = !sharedData->frameFlip_Gameboy;
     if (REG_VCOUNT == 192)
         sharedData->frameFlip_DS = sharedData->frameFlip_Gameboy;
@@ -1666,12 +1687,12 @@ void updateBgPalette(int paletteid, u8* data, u8 dmgPal) {
     for (int i=0; i<4; i++) {
         int id = (dmgPal>>(i*2))&3;
 
-        BG_PALETTE[((paletteid)*16)+i+1] = data[(paletteid*8)+(id*2)] | data[(paletteid*8)+(id*2)+1]<<8;
+        BG_PALETTE[((paletteid)*16)+i+5] = data[(paletteid*8)+(id*2)] | data[(paletteid*8)+(id*2)+1]<<8;
     }
 }
 
 void updateBgPalette_GBC(int paletteid, u8* data) {
-    u16* dest = BG_PALETTE+paletteid*16+1;
+    u16* dest = BG_PALETTE+paletteid*16+5;
     u16* src = ((u16*)data)+paletteid*4;
     for (int i=0; i<4; i++)
         *(dest++) = *(src++);
@@ -1687,7 +1708,7 @@ void updateSprPalette(int paletteid, u8* data, u8 dmgPal) {
         else
             id = i;
 
-        SPRITE_PALETTE[((paletteid)*16)+i] = data[(src*8)+(id*2)] | data[(src*8)+(id*2)+1]<<8;
+        SPRITE_PALETTE[((paletteid)*16)+i+4] = data[(src*8)+(id*2)] | data[(src*8)+(id*2)+1]<<8;
     }
 }
 

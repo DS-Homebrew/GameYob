@@ -262,6 +262,10 @@ void setScaleFilterFunc(int value) {
     scaleFilter = value;
 }
 
+void setColorCorrFunc(int value) {
+    colorCorrect = value;
+}
+
 void customBorderEnableFunc(int value) {
     customBordersEnabled = value;
     checkBorder();
@@ -414,6 +418,7 @@ ConsoleSubMenu menuList[] = {
             {"Single Screen", setSingleScreenFunc, 2, {"Off","On"}, 0},
             {"Scaling", setScaleModeFunc, 3, {"Off","Aspect","Full"}, 0},
             {"Scale Filter", setScaleFilterFunc, 2, {"Off","On"}, 1},
+            {"Color Correction", setColorCorrFunc, 2, {"Off", "On"}, 1},
             {"SGB Borders", sgbBorderEnableFunc, 2, {"Off","On"}, 1},
             {"Custom Border", customBorderEnableFunc, 2, {"Off","On"}, 1},
             {"Select Border", (void (*)(int))selectBorder, 0, {}, 0},
