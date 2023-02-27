@@ -12,6 +12,7 @@ extern int interruptWaitMode;
 extern int scaleMode;
 extern int scaleFilter;
 extern u8 gfxMask;
+extern int colorCorrect;
 extern volatile int loadedBorderType;
 extern bool customBorderExists;
 extern bool sgbBorderLoaded;
