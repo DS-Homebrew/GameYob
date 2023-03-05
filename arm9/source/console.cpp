@@ -412,7 +412,7 @@ ConsoleSubMenu menuList[] = {
     },
     {
         "Display",
-        7,
+        8,
         {
             {"Game Screen", setScreenFunc, 2, {"Top","Bottom"}, 0},
             {"Single Screen", setSingleScreenFunc, 2, {"Off","On"}, 0},
