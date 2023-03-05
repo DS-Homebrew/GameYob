@@ -17,6 +17,8 @@ enum {
     MBC_MAX,
 };
 
+#define CONFIG_FILENAME "/_nds/gameyobds.ini"
+
 #define BUTTONA		0x1
 #define BUTTONB		0x2
 #define SELECT		0x4
@@ -65,7 +67,7 @@ void writeSaveFileSector(int startSector, int numSectors);
 
 void startKeyConfigChooser();
 bool readConfigFile();
-void writeConfigFile();
+bool writeConfigFile();
 
 void readKeys();
 bool keyPressed(int key);

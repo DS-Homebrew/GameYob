@@ -366,7 +366,7 @@ void generalPrintConfig(FILE* file) {
 }
 
 bool readConfigFile() {
-    FILE* file = fopen("/gameyobds.ini", "r");
+    FILE* file = fopen(CONFIG_FILENAME, "r");
     char line[100];
     void (*configParser)(const char*) = generalParseConfig;
 
@@ -408,8 +408,11 @@ end:
     return file != NULL;
 }
 
-void writeConfigFile() {
-    FILE* file = fopen("/_nds/gameyobds.ini", "w");
+bool writeConfigFile() {
+    FILE* file = fopen(CONFIG_FILENAME, "w");
+    if (!file)
+        return false;
+
     fiprintf(file, "[general]\n");
     generalPrintConfig(file);
     fiprintf(file, "[console]\n");
@@ -421,6 +424,7 @@ void writeConfigFile() {
     char nameBuf[100];
     siprintf(nameBuf, "%s.cht", basename);
     saveCheats(nameBuf);
+    return true;
 }
 
 

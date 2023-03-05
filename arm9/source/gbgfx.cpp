@@ -723,15 +723,21 @@ void determineGBRomPalette(u8* SPR0, u8* SPR1, u8* BGP) {
 void initGFXPalette() {
     memset(bgPaletteData, 0xff, 0x40);
     if (gbMode == GB) {
-        u8 SPR0, SPR1, BGP;
-        if (cgbPaletteSelect == 0) {
-            determineGBRomPalette(&SPR0, &SPR1, &BGP);
+        if (cgbPaletteSelect > 0) {
+            u8 SPR0, SPR1, BGP;
+            if (cgbPaletteSelect == 1) {
+                determineGBRomPalette(&SPR0, &SPR1, &BGP);
+            } else {
+                pickGBPalette(&SPR0, &SPR1, &BGP, CGB_SELECT_IDX[cgbPaletteSelect-1], CGB_SELECT_SHUF[cgbPaletteSelect-1]);
+            }
+            memcpy(&sprPaletteData[0], &CGB_PALETTES[SPR0], sizeof(u16)*4);
+            memcpy(&sprPaletteData[8], &CGB_PALETTES[SPR1], sizeof(u16)*4);
+            memcpy(&bgPaletteData[0],  &CGB_PALETTES[BGP], sizeof(u16)*4);
         } else {
-            pickGBPalette(&SPR0, &SPR1, &BGP, CGB_SELECT_IDX[cgbPaletteSelect], CGB_SELECT_SHUF[cgbPaletteSelect]);
+            memcpy(&sprPaletteData[0], customPalette, sizeof(u16)*4);
+            memcpy(&sprPaletteData[8], customPalette, sizeof(u16)*4);
+            memcpy(&bgPaletteData[0],  customPalette, sizeof(u16)*4);
         }
-        memcpy(&sprPaletteData[0], &CGB_PALETTES[SPR0], sizeof(u16)*4);
-        memcpy(&sprPaletteData[8], &CGB_PALETTES[SPR1], sizeof(u16)*4);
-        memcpy(&bgPaletteData[0],  &CGB_PALETTES[BGP], sizeof(u16)*4);
     }
     // This prevents some flickering when loading roms
     for (int i=0; i<8; i++)
