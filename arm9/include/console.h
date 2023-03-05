@@ -17,6 +17,7 @@ extern int singleScreenMode;
 extern int gameScreen;
 extern PrintConsole* menuConsole;
 extern int cgbPaletteSelect;
+extern u16 customPalette[4];
 
 extern volatile int consoleSelectedRow; // This line is given a different backdrop
 
@@ -52,6 +53,7 @@ PrintConsole* getPrintConsole();
 void consoleSetPosColor(int x, int y, int color);
 void consoleSetLineColor(int line, int color);
 void iprintfColored(int palette, const char* format, ...);
+void iprintfColoredNoBreak(int palette, const char* format, ...);
 void printLog(const char* format, ...);
 
 int checkRumble();

@@ -64,7 +64,8 @@ const u8 CGB_SELECT_SHUF[] = {
 };
 
 #define CGB_SELECT_NAMES {\
-    "Default",\
+    "Custom",\
+    "CGB BIOS",\
     "Up",\
     "A + Up",\
     "B + Up",\

@@ -46,6 +46,8 @@ bool printerEnabled;
 
 int cgbPaletteSelect = 0;
 
+u16 customPalette[4];
+
 volatile int consoleSelectedRow = -1;
 
 void (*subMenuUpdateFunc)();
@@ -57,7 +59,6 @@ extern int halt;
 
 extern int rumbleInserted;
 extern int rumbleStrength;
-
 
 // Private function used for simple submenus
 void subMenuGenericUpdateFunc() {
@@ -149,10 +150,13 @@ void keyConfigFunc(int value) {
 void saveSettingsFunc(int value) {
     printMenuMessage("Saving settings...");
     muteSND();
-    writeConfigFile();
+    if (writeConfigFile()) {
+        printMenuMessage("Settings saved.");
+    } else {
+        printMenuMessage("Failed to write settings.");
+    }
     if (!isGameboyPaused())
         unmuteSND();
-    printMenuMessage("Settings saved.");
 }
 
 void stateSelectFunc(int value) {
@@ -336,6 +340,7 @@ void setRumbleFunc(int value) {
 void setCamera(int value) {
     if (value > 0) {
         system_enableCamera(value);
+		printMenuMessage("Warning: cam may hang emulator");
     } else {
         system_disableCamera();
     }
@@ -418,7 +423,7 @@ ConsoleSubMenu menuList[] = {
             {"Single Screen", setSingleScreenFunc, 2, {"Off","On"}, 0},
             {"Scaling", setScaleModeFunc, 3, {"Off","Aspect","Full"}, 0},
             {"Scale Filter", setScaleFilterFunc, 2, {"Off","On"}, 1},
-            {"Color Correction", setColorCorrFunc, 2, {"Off", "On"}, 1},
+            {"Color Correction", setColorCorrFunc, 2, {"Off", "On"}, 0},
             {"SGB Borders", sgbBorderEnableFunc, 2, {"Off","On"}, 1},
             {"Custom Border", customBorderEnableFunc, 2, {"Off","On"}, 1},
             {"Select Border", (void (*)(int))selectBorder, 0, {}, 0},
@@ -432,7 +437,7 @@ ConsoleSubMenu menuList[] = {
             {"Detect GBA", gbaModeFunc, 2, {"Off","On"}, 0},
             {"GBC Mode", gameboyModeFunc, 3, {"Off","If Needed","On"}, 2},
             {"SGB Mode", sgbModeFunc, 3, {"Off","Prefer GBC","Prefer SGB"}, 1},
-            {"GB Palette", cgbPaletteFunc, 13, CGB_SELECT_NAMES, 0}
+            {"GB Palette", cgbPaletteFunc, 14, CGB_SELECT_NAMES, 0}
         }
     },
     {
@@ -472,6 +477,11 @@ void setMenuDefaults() {
             }
         }
     }
+
+    customPalette[0] = RGB15(31, 31, 31);
+    customPalette[1] = RGB15(20, 20, 20);
+    customPalette[2] = RGB15(10, 10, 10);
+    customPalette[3] = RGB15( 0,  0,  0);
 
     menuConsole = (PrintConsole*)malloc(sizeof(PrintConsole));
     memcpy(menuConsole, consoleGetDefault(), sizeof(PrintConsole));
@@ -572,7 +582,7 @@ void redrawMenu() {
                 iprintfColored(option_color, "%s  ", menuList[menu].options[i].name);
                 iprintfColored(menuList[menu].options[i].enabled ? CONSOLE_COLOR_LIGHT_GREEN : option_color,
                         "%s", menuList[menu].options[i].values[menuList[menu].options[i].selection]);
-                iprintfColored(option_color, " *");
+                iprintfColoredNoBreak(option_color, " *");
             }
             else {
                 iprintf("  ");
@@ -760,6 +770,46 @@ void disableMenuOption(const char* optionName) {
     }
 }
 
+void RGBStringToPalette(const char* RGBString, u16* palette) {
+    char lRGBString[40];
+    strcpy(lRGBString, RGBString);
+    const char sep[] = ",";
+    char* token = strtok(lRGBString, sep);
+    u8 rgbs[3];
+    for (int i = 0; i < 4; i++) {
+        for (int n = 0; n < 3; n++) {
+            if (token == NULL) {
+                // not enough RGB values, load default palette instead
+                palette[0] = RGB15(31, 31, 31);
+                palette[1] = RGB15(20, 20, 20);
+                palette[2] = RGB15(10, 10, 10);
+                palette[3] = RGB15( 0,  0,  0);
+                return;
+            }
+            int in = atoi(token);
+            rgbs[n] = (u8)in;
+            token = strtok(NULL, sep);
+        }
+        palette[i] = RGB15(rgbs[0], rgbs[1], rgbs[2]);
+    }
+}
+
+void paletteToRGBString(u16* palette, char* RGBString) {
+    u8 rgbs[12];
+
+    for (int i = 0; i < 4; i++) {
+        rgbs[i*3]   = (palette[i] >> 10) & 0x1f;
+        rgbs[i*3+1] = (palette[i] >> 5)  & 0x1f;
+        rgbs[i*3+2] = (palette[i])       & 0x1f;
+    }
+
+    sprintf(RGBString, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+        rgbs[ 0], rgbs[ 1], rgbs[ 2],
+        rgbs[ 3], rgbs[ 4], rgbs[ 5],
+        rgbs[ 6], rgbs[ 7], rgbs[ 8],
+        rgbs[ 9], rgbs[10], rgbs[11]);
+}
+
 void menuParseConfig(const char* line) {
     char* equalsPos = strchr(line, '=');
     if (equalsPos == 0)
@@ -774,6 +824,8 @@ void menuParseConfig(const char* line) {
                 menuList[i].options[j].selection = val;
                 menuList[i].options[j].function(val);
                 return;
+            } else if (strcasecmp("Current Palette", option) == 0) {
+                RGBStringToPalette(value, customPalette);
             }
         }
     }
@@ -786,6 +838,9 @@ void menuPrintConfig(FILE* file) {
                 fiprintf(file, "%s=%d\n", menuList[i].options[j].name, menuList[i].options[j].selection);
         }
     }
+    char RGBString[40];
+    paletteToRGBString(customPalette, RGBString);
+    fiprintf(file, "Current Palette=%s\n", RGBString);
 }
 
 void printLog(const char *format, ...) {
@@ -953,10 +1008,7 @@ void consoleSetLineColor(int line, int color) {
     }
 }
 
-void iprintfColored(int palette, const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-
+void iprintfColoredExt(int palette, bool linebreak, const char *format, va_list args) {
     PrintConsole* console = getPrintConsole();
     int x = console->cursorX;
     int y = console->cursorY;
@@ -975,7 +1027,7 @@ void iprintfColored(int palette, const char *format, ...) {
             x++;
             if (x == 32) {
                 x = 0;
-                y++;
+                y += linebreak ? 1 : 0;
             }
         }
     }
@@ -984,6 +1036,17 @@ void iprintfColored(int palette, const char *format, ...) {
     //iprintf(s);
 }
 
+void iprintfColored(int palette, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    iprintfColoredExt(palette, true, format, args);
+}
+
+void iprintfColoredNoBreak(int palette, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    iprintfColoredExt(palette, false, format, args);
+}
 
 int checkRumble() {
     if (isDSiMode())
