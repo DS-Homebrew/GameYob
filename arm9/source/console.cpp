@@ -770,46 +770,6 @@ void disableMenuOption(const char* optionName) {
     }
 }
 
-void RGBStringToPalette(const char* RGBString, u16* palette) {
-    char lRGBString[40];
-    strcpy(lRGBString, RGBString);
-    const char sep[] = ",";
-    char* token = strtok(lRGBString, sep);
-    u8 rgbs[3];
-    for (int i = 0; i < 4; i++) {
-        for (int n = 0; n < 3; n++) {
-            if (token == NULL) {
-                // not enough RGB values, load default palette instead
-                palette[0] = RGB15(31, 31, 31);
-                palette[1] = RGB15(20, 20, 20);
-                palette[2] = RGB15(10, 10, 10);
-                palette[3] = RGB15( 0,  0,  0);
-                return;
-            }
-            int in = atoi(token);
-            rgbs[n] = (u8)in;
-            token = strtok(NULL, sep);
-        }
-        palette[i] = RGB15(rgbs[0], rgbs[1], rgbs[2]);
-    }
-}
-
-void paletteToRGBString(u16* palette, char* RGBString) {
-    u8 rgbs[12];
-
-    for (int i = 0; i < 4; i++) {
-        rgbs[i*3]   = (palette[i] >> 10) & 0x1f;
-        rgbs[i*3+1] = (palette[i] >> 5)  & 0x1f;
-        rgbs[i*3+2] = (palette[i])       & 0x1f;
-    }
-
-    sprintf(RGBString, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-        rgbs[ 0], rgbs[ 1], rgbs[ 2],
-        rgbs[ 3], rgbs[ 4], rgbs[ 5],
-        rgbs[ 6], rgbs[ 7], rgbs[ 8],
-        rgbs[ 9], rgbs[10], rgbs[11]);
-}
-
 void menuParseConfig(const char* line) {
     char* equalsPos = strchr(line, '=');
     if (equalsPos == 0)

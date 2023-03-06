@@ -37,6 +37,13 @@ char* romPath = NULL;
 char* biosPath = NULL;
 char* borderPath = NULL;
 
+std::vector<PaletteEntry> customPalettes;
+
+const std::vector<PaletteEntry> defaultPalettes = {
+    {"Black and white", {RGB15(31, 31, 31), RGB15(20, 20, 20), RGB15(10, 10, 10), RGB15( 0,  0,  0)}},
+    {"Reversed",        {RGB15( 0,  0,  0), RGB15(10, 10, 10), RGB15(20, 20, 20), RGB15(31, 31, 31)}},
+};
+
 // Values taken from the cartridge header
 u8 ramSize;
 u8 mapper;
@@ -365,6 +372,70 @@ void generalPrintConfig(FILE* file) {
         fiprintf(file, "borderfile=%s\n", borderPath);
 }
 
+bool RGBStringToPalette(const char* RGBString, u16* palette) {
+    char lRGBString[40];
+    strcpy(lRGBString, RGBString);
+    const char sep[] = ",";
+    char* token = strtok(lRGBString, sep);
+    u8 rgbs[3];
+    for (int i = 0; i < 4; i++) {
+        for (int n = 0; n < 3; n++) {
+            if (token == NULL) {
+                // not enough RGB values, load default palette instead
+                palette[0] = RGB15(31, 31, 31);
+                palette[1] = RGB15(20, 20, 20);
+                palette[2] = RGB15(10, 10, 10);
+                palette[3] = RGB15( 0,  0,  0);
+                return false;
+            }
+            int in = atoi(token);
+            rgbs[n] = (u8)in;
+            token = strtok(NULL, sep);
+        }
+        palette[i] = RGB15(rgbs[0], rgbs[1], rgbs[2]);
+    }
+    return true;
+}
+
+void paletteToRGBString(u16* palette, char* RGBString) {
+    u8 rgbs[12];
+
+    for (int i = 0; i < 4; i++) {
+        rgbs[i*3]   = (palette[i] >> 10) & 0x1f;
+        rgbs[i*3+1] = (palette[i] >> 5)  & 0x1f;
+        rgbs[i*3+2] = (palette[i])       & 0x1f;
+    }
+
+    sprintf(RGBString, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+        rgbs[ 0], rgbs[ 1], rgbs[ 2],
+        rgbs[ 3], rgbs[ 4], rgbs[ 5],
+        rgbs[ 6], rgbs[ 7], rgbs[ 8],
+        rgbs[ 9], rgbs[10], rgbs[11]);
+}
+
+void palettesParseConfig(const char* line) {
+    char* equalsPos;
+    if ((equalsPos = strrchr(line, '=')) != 0 && equalsPos != line+strlen(line)-1) {
+        *equalsPos = '\0';
+        const char* parameter = line;
+        const char* value = equalsPos+1;
+
+        PaletteEntry pal;
+        strcpy(pal.name, parameter);
+        if (RGBStringToPalette(value, pal.palette)) {
+            customPalettes.push_back(pal);
+        }
+    }
+}
+
+void palettesPrintConfig(FILE* file) {
+    for (PaletteEntry pal : customPalettes) {
+        char RGBString[40];
+        paletteToRGBString(pal.palette, RGBString);
+        fiprintf(file, "%s=%s\n", pal.name, RGBString);
+    }
+}
+
 bool readConfigFile() {
     FILE* file = fopen(CONFIG_FILENAME, "r");
     char line[100];
@@ -392,6 +463,9 @@ bool readConfigFile() {
                 else if (strcasecmp(section, "controls") == 0) {
                     configParser = controlsParseConfig;
                 }
+                else if (strcasecmp(section, "palettes") == 0) {
+                    configParser = palettesParseConfig;
+                }
             }
         }
         else
@@ -404,6 +478,9 @@ end:
     if (selectedKeyConfig >= keyConfigs.size())
         selectedKeyConfig = 0;
     loadKeyConfig();
+
+    if (customPalettes.empty())
+        customPalettes = defaultPalettes;
 
     return file != NULL;
 }
@@ -419,6 +496,8 @@ bool writeConfigFile() {
     menuPrintConfig(file);
     fiprintf(file, "[controls]\n");
     controlsPrintConfig(file);
+    fiprintf(file, "[palettes]\n");
+    palettesPrintConfig(file);
     fclose(file);
 
     char nameBuf[100];
