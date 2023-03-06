@@ -1,5 +1,6 @@
 #pragma once
 #include <stdio.h>
+#include <vector>
 #include "global.h"
 
 /* All the possible MBC */
@@ -61,9 +62,19 @@ extern FILE* saveFile;
 
 extern char* borderPath;
 
+struct PaletteEntry {
+    char name[32];
+    u16 palette[4];
+};
+
+extern std::vector<PaletteEntry> customPalettes;
+
 void initInput();
 void flushFatCache();
 void writeSaveFileSector(int startSector, int numSectors);
+
+void paletteToRGBString(u16* palette, char* RGBString);
+bool RGBStringToPalette(const char* RGBString, u16* palette);
 
 void startKeyConfigChooser();
 bool readConfigFile();
