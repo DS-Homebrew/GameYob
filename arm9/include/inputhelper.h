@@ -77,6 +77,7 @@ void paletteToRGBString(u16* palette, char* RGBString);
 bool RGBStringToPalette(const char* RGBString, u16* palette);
 
 void startKeyConfigChooser();
+void startPaletteChooser();
 bool readConfigFile();
 bool writeConfigFile();
 

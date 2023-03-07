@@ -40,8 +40,37 @@ char* borderPath = NULL;
 std::vector<PaletteEntry> customPalettes;
 
 const std::vector<PaletteEntry> defaultPalettes = {
-    {"Black and white", {RGB15(31, 31, 31), RGB15(20, 20, 20), RGB15(10, 10, 10), RGB15( 0,  0,  0)}},
-    {"Reversed",        {RGB15( 0,  0,  0), RGB15(10, 10, 10), RGB15(20, 20, 20), RGB15(31, 31, 31)}},
+    {"Grayscale",          {RGB15(31, 31, 31), RGB15(20, 20, 20), RGB15(13, 13, 13), RGB15( 5,  5,  5)}},
+    {"Reversed",           {RGB15( 5,  5,  5), RGB15(13, 13, 13), RGB15(20, 20, 20), RGB15(31, 31, 31)}},
+    {"AYY4",               {RGB15(29, 29, 27), RGB15(31, 25, 18), RGB15(31, 14, 14), RGB15( 0,  6,  7)}},
+    {"SpaceHaze",          {RGB15(30, 28, 24), RGB15(25,  6, 18), RGB15(13,  4, 22), RGB15( 1,  1,  6)}},
+    {"CRTGB",              {RGB15(27, 29,  4), RGB15( 9, 19,  2), RGB15( 1,  8,  1), RGB15( 1,  1,  0)}},
+    {"Amber CRTGB",        {RGB15(31, 25,  3), RGB15(26, 10,  0), RGB15(11,  2,  2), RGB15( 2,  0,  1)}},
+    {"Kirby SGB",          {RGB15(30, 23, 30), RGB15(28, 16, 16), RGB15(14,  6, 28), RGB15( 5,  5, 18)}},
+    {"CherryMelon",        {RGB15(31, 27, 28), RGB15(31,  9, 13), RGB15( 5, 11,  6), RGB15( 0,  5,  4)}},
+    {"Pumpkin GB",         {RGB15(30, 27, 15), RGB15(30, 13,  3), RGB15( 3, 13,  5), RGB15( 2,  5,  4)}},
+    {"Purpledawn",         {RGB15(29, 31, 29), RGB15(19, 15, 23), RGB15( 5, 14, 15), RGB15( 0,  3,  6)}},
+    {"Royal4",             {RGB15(29, 27, 11), RGB15(26, 16,  9), RGB15(17,  4, 21), RGB15(10,  2, 18)}},
+    {"Grand Dad 4",        {RGB15(28, 30, 30), RGB15(12, 22, 30), RGB15(26,  7,  9), RGB15( 9,  3,  5)}},
+    {"Mural GB",           {RGB15(30, 31, 31), RGB15(25, 21, 13), RGB15(20, 10,  6), RGB15( 1,  3,  9)}},
+    {"Ocean GB",           {RGB15(17, 27, 30), RGB15( 7, 15, 27), RGB15( 5,  6, 17), RGB15( 3,  3,  6)}},
+    {"Alleyway",           {RGB15(31, 26,  0), RGB15(31, 13, 31), RGB15(15, 15, 25), RGB15( 8,  8,  8)}},
+    {"Pocket",             {RGB15(28, 28, 24), RGB15(24, 24, 20), RGB15(17, 17, 12), RGB15(13, 13,  9)}},
+    {"Kadabura4",          {RGB15(31, 31, 31), RGB15(27,  0,  1), RGB15(11, 11, 11), RGB15( 0,  0,  0)}},
+    {"Virtual",            {RGB15(31,  0,  0), RGB15(15,  0,  0), RGB15( 8,  0,  0), RGB15( 0,  0,  0)}},
+    {"Love! Love!",        {RGB15(31, 31, 31), RGB15(31, 22, 28), RGB15(31, 12, 21), RGB15(21,  2,  6)}},
+    {"Metroid II SGB",     {RGB15(21, 27,  4), RGB15(22,  4, 11), RGB15( 0, 15, 12), RGB15( 5,  3,  0)}},
+    {"Micro 86",           {RGB15(31, 26, 22), RGB15(31, 15,  6), RGB15(31,  0,  0), RGB15( 5,  0,  2)}},
+    {"Vivid 2Bit Scream",  {RGB15(25, 30,  6), RGB15(14, 21,  6), RGB15(11, 10, 20), RGB15(10,  4,  3)}},
+    {"Pastel GBC/SGB",     {RGB15(31, 30, 21), RGB15(29, 17, 17), RGB15(19, 18, 30), RGB15( 0,  0,  0)}},
+    {"Scold 2 bit",        {RGB15(26,  1,  1), RGB15( 2, 22,  0), RGB15(25,  0, 18), RGB15( 2,  3, 10)}},
+    {"trans flag",         {RGB15(31, 31, 31), RGB15(30, 21, 22), RGB15(11, 25, 30), RGB15( 4,  4,  4)}},
+    {"strawberry parfait", {RGB15(31, 28, 25), RGB15(30, 10, 26), RGB15(26,  4,  6), RGB15( 4,  2,  0)}},
+    {"bric-a-brac",        {RGB15(22, 26, 27), RGB15(30, 18,  3), RGB15(29, 10,  7), RGB15( 1,  5,  7)}},
+    {"poolors 1",          {RGB15(28, 17, 15), RGB15(18, 11, 12), RGB15( 6,  1, 13), RGB15( 4,  4,  1)}},
+    {"poolors 2",          {RGB15(22, 30, 29), RGB15(25, 22, 22), RGB15(21, 22, 15), RGB15( 8, 18, 17)}},
+    {"poolors 3",          {RGB15(31, 27,  7), RGB15(18, 30, 21), RGB15(16, 11, 18), RGB15(10,  2, 13)}},
+    {"poolors 4",          {RGB15(18, 25, 18), RGB15( 1, 18, 18), RGB15( 9,  9, 21), RGB15( 2,  1,  2)}}
 };
 
 // Values taken from the cartridge header
@@ -322,6 +351,109 @@ void startKeyConfigChooser() {
     redrawKeyConfigChooser();
 }
 
+int paletteChooser_option = 0;
+
+void redrawPaletteChooser() {
+    int& option = paletteChooser_option;
+
+    int offset = -11 + option;
+
+    consoleClear();
+
+    // herein lies madness
+    memset(&menuConsole->fontBgGfx[menuConsole->fontCharOffset + 1*16], 0x9999, sizeof(u16)*16);
+    memset(&menuConsole->fontBgGfx[menuConsole->fontCharOffset + 2*16], 0xAAAA, sizeof(u16)*16);
+    memset(&menuConsole->fontBgGfx[menuConsole->fontCharOffset + 3*16], 0xBBBB, sizeof(u16)*16);
+    memset(&menuConsole->fontBgGfx[menuConsole->fontCharOffset + 4*16], 0xCCCC, sizeof(u16)*16);
+    memset(&menuConsole->fontBgGfx[menuConsole->fontCharOffset + 5*16], 0xDDDD, sizeof(u16)*16);
+
+    iprintf("%18s\n\n", (offset+2 > 0 ? "^^^^" : "    "));
+    for(int i = 2; i < 22; i++) {
+        int index = offset + i;
+        int palIndex = (((i-2)%4))*64 + ((i-2)>>2) + 9;
+
+        u16* dest = menuConsole->fontBgMap+i*32+2;
+
+        if (index >= 0 && index < (int)customPalettes.size()) {
+            int color = CONSOLE_COLOR_WHITE;
+            if (index == option) {
+                color = CONSOLE_COLOR_LIGHT_YELLOW;
+            }
+            iprintfColoredNoBreak(color, "%s      %s\n", (index == option ? "*" : " "), customPalettes[index].name);
+            
+            // palettes cycle around in unused space...
+            BG_PALETTE_SUB[palIndex]    = customPalettes[index].palette[0];
+            BG_PALETTE_SUB[palIndex+16] = customPalettes[index].palette[1];
+            BG_PALETTE_SUB[palIndex+32] = customPalettes[index].palette[2];
+            BG_PALETTE_SUB[palIndex+48] = customPalettes[index].palette[3];
+
+            // ... for the cheeky palette preview tiles
+            u8 tile = (((i-2)/4)%5)+1;
+            *(dest++) = tile | TILE_PALETTE((((i-2)*4)%16));
+            *(dest++) = tile | TILE_PALETTE((((i-2)*4)%16)+1);
+            *(dest++) = tile | TILE_PALETTE((((i-2)*4)%16)+2);
+            *(dest++) = tile | TILE_PALETTE((((i-2)*4)%16)+3);
+        } else {
+            iprintf("\n");
+            BG_PALETTE_SUB[palIndex]    = 0;
+            BG_PALETTE_SUB[palIndex+16] = 0;
+            BG_PALETTE_SUB[palIndex+32] = 0;
+            BG_PALETTE_SUB[palIndex+48] = 0;
+        }
+    }
+
+    iprintf("\n%18s", (offset+22 < (int)customPalettes.size() ? "vvvv" : "    "));
+}
+
+void updatePaletteChooser() {
+    bool redraw = false;
+
+    int& option = paletteChooser_option;
+
+    if (keyJustPressed(KEY_B)) {
+        // just close
+        closeSubMenu();
+    }
+    else if (keyJustPressed(KEY_A)) {
+        // select palette and close
+        customPalette = option;
+        initGFXPalette();
+        closeSubMenu();
+    }
+    else if (keyPressedAutoRepeat(KEY_DOWN)) {
+        if (option == (int)customPalettes.size()-1)
+            option = 0;
+        else
+            option++;
+        redraw = true;
+    }
+    else if (keyPressedAutoRepeat(KEY_UP)) {
+        if (option == 0)
+            option = (int)customPalettes.size()-1;
+        else
+            option--;
+        redraw = true;
+    }
+    else if (keyPressedAutoRepeat(KEY_LEFT)) {
+        option -= 10;
+        if (option < 0) option = 0;
+        redraw = true;
+    }
+    else if (keyPressedAutoRepeat(KEY_RIGHT)) {
+        option += 10;
+        if (option >= (int)customPalettes.size()) option = (int)customPalettes.size()-1;
+        redraw = true;
+    }
+    if (redraw)
+        doAtVBlank(redrawPaletteChooser);
+}
+
+void startPaletteChooser() {
+    paletteChooser_option = customPalette;
+    displaySubMenu(updatePaletteChooser);
+    redrawPaletteChooser();
+}
+
 void generalParseConfig(const char* line) {
     char* equalsPos;
     if ((equalsPos = strrchr(line, '=')) != 0 && equalsPos != line+strlen(line)-1) {
@@ -481,6 +613,9 @@ end:
 
     if (customPalettes.empty())
         customPalettes = defaultPalettes;
+
+    if (customPalette >= (int)customPalettes.size())
+        customPalette = 0;
 
     return file != NULL;
 }

@@ -734,9 +734,9 @@ void initGFXPalette() {
             memcpy(&sprPaletteData[8], &CGB_PALETTES[SPR1], sizeof(u16)*4);
             memcpy(&bgPaletteData[0],  &CGB_PALETTES[BGP], sizeof(u16)*4);
         } else {
-            memcpy(&sprPaletteData[0], customPalette, sizeof(u16)*4);
-            memcpy(&sprPaletteData[8], customPalette, sizeof(u16)*4);
-            memcpy(&bgPaletteData[0],  customPalette, sizeof(u16)*4);
+            memcpy(&sprPaletteData[0], customPalettes[customPalette].palette, sizeof(u16)*4);
+            memcpy(&sprPaletteData[8], customPalettes[customPalette].palette, sizeof(u16)*4);
+            memcpy(&bgPaletteData[0],  customPalettes[customPalette].palette, sizeof(u16)*4);
         }
     }
     // This prevents some flickering when loading roms
