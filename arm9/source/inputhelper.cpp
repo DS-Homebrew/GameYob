@@ -533,9 +533,9 @@ void paletteToRGBString(u16* palette, char* RGBString) {
     u8 rgbs[12];
 
     for (int i = 0; i < 4; i++) {
-        rgbs[i*3]   = (palette[i] >> 10) & 0x1f;
+        rgbs[i*3]   = (palette[i])       & 0x1f;
         rgbs[i*3+1] = (palette[i] >> 5)  & 0x1f;
-        rgbs[i*3+2] = (palette[i])       & 0x1f;
+        rgbs[i*3+2] = (palette[i] >> 10) & 0x1f;
     }
 
     sprintf(RGBString, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
@@ -614,7 +614,7 @@ end:
     if (customPalettes.empty())
         customPalettes = defaultPalettes;
 
-    if (customPalette >= (int)customPalettes.size())
+    if (customPalette < 0 || customPalette >= (int)customPalettes.size())
         customPalette = 0;
 
     return file != NULL;
