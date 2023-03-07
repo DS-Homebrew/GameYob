@@ -17,7 +17,7 @@ extern int singleScreenMode;
 extern int gameScreen;
 extern PrintConsole* menuConsole;
 extern int cgbPaletteSelect;
-extern u16 customPalette[4];
+extern int customPalette;
 
 extern volatile int consoleSelectedRow; // This line is given a different backdrop
 

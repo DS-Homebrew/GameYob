@@ -46,7 +46,7 @@ bool printerEnabled;
 
 int cgbPaletteSelect = 0;
 
-u16 customPalette[4];
+int customPalette = 0;
 
 volatile int consoleSelectedRow = -1;
 
@@ -431,13 +431,14 @@ ConsoleSubMenu menuList[] = {
     },
     {
         "GB Modes",
-        5,
+        6,
         {
             {"GBC Bios", biosEnableFunc, 3, {"Off","GB Only","On"}, 1},
             {"Detect GBA", gbaModeFunc, 2, {"Off","On"}, 0},
             {"GBC Mode", gameboyModeFunc, 3, {"Off","If Needed","On"}, 2},
             {"SGB Mode", sgbModeFunc, 3, {"Off","Prefer GBC","Prefer SGB"}, 1},
-            {"GB Palette", cgbPaletteFunc, 14, CGB_SELECT_NAMES, 0}
+            {"GB Palette", cgbPaletteFunc, 14, CGB_SELECT_NAMES, 0},
+            {"Select Palette", (void (*)(int))startPaletteChooser, 0, {}, 0}
         }
     },
     {
@@ -478,10 +479,7 @@ void setMenuDefaults() {
         }
     }
 
-    customPalette[0] = RGB15(31, 31, 31);
-    customPalette[1] = RGB15(20, 20, 20);
-    customPalette[2] = RGB15(10, 10, 10);
-    customPalette[3] = RGB15( 0,  0,  0);
+    customPalette = 0;
 
     menuConsole = (PrintConsole*)malloc(sizeof(PrintConsole));
     memcpy(menuConsole, consoleGetDefault(), sizeof(PrintConsole));
@@ -785,7 +783,7 @@ void menuParseConfig(const char* line) {
                 menuList[i].options[j].function(val);
                 return;
             } else if (strcasecmp("Current Palette", option) == 0) {
-                RGBStringToPalette(value, customPalette);
+                customPalette = val;
             }
         }
     }
@@ -798,9 +796,7 @@ void menuPrintConfig(FILE* file) {
                 fiprintf(file, "%s=%d\n", menuList[i].options[j].name, menuList[i].options[j].selection);
         }
     }
-    char RGBString[40];
-    paletteToRGBString(customPalette, RGBString);
-    fiprintf(file, "Current Palette=%s\n", RGBString);
+    fiprintf(file, "Current Palette=%d\n", customPalette);
 }
 
 void printLog(const char *format, ...) {
@@ -852,7 +848,9 @@ void setupScaledScreens1() {
 
 void setupUnscaledScreens() {
     if (!consoleInitialized) {
-        consoleDemoInit(); // Or, consoleInit(menuConsole, ...)
+        //consoleDemoInit(); // Or, consoleInit(menuConsole, ...)
+        consoleInit(menuConsole, 0, BgType_Text4bpp, BgSize_T_256x256, 2, 0, false, true);
+
         setPrintConsole(menuConsole);
         BG_PALETTE_SUB[8*16 - 1] = RGB15(17,17,17); // Grey (replaces a color established in consoleDemoInit)
         consoleInitialized = true;
@@ -976,7 +974,7 @@ void iprintfColoredExt(int palette, bool linebreak, const char *format, va_list 
     char s[100];
     vsiprintf(s, format, args);
 
-    u16* dest = BG_MAP_RAM_SUB(22)+y*32+x;
+    u16* dest = console->fontBgMap+y*32+x;
     for (uint i=0; i<strlen(s); i++) {
         if (s[i] == '\n') {
             x = 0;
