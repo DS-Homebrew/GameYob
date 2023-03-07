@@ -1,3 +1,13 @@
+Version 0.5.3-mavica
+
+- Pocket Camera mapper support using DSi cameras (thanks Epicpkmn11!).
+- Added color correction option for a more authentic GBC approximation.
+  - LUT created from https://github.com/libretro/glsl-shaders/blob/master/handheld/shaders/color/gbc-color.glsl
+- Added palettes based on GBC BIOS, including first-party enahnced palette support.
+- Added custom palette support with selection menu.
+- Config file moved to /_nds/ root folder for TWiLightMenu++ compatibility.
+- Small bugfixes in menu rendering.
+
 Version 0.5.2
 
 - Updated to DevkitARM r46 for better DSi support.
