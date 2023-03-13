@@ -27,7 +27,7 @@ void drawScanline_P2(int scanline);
 void drawScreen();
 
 void initGFX();
-void initGFXPalette();
+void initGFXPalette(bool init);
 void refreshGFX();
 void clearGFX();
 void refreshSgbPalette();

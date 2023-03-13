@@ -221,9 +221,7 @@ void sgbModeFunc(int value) {
 
 void cgbPaletteFunc(int value) {
     cgbPaletteSelect = value;
-    if (gbMode == 0 && sgbMode == false) {
-        initGFXPalette();
-    }
+    initGFXPalette(false);
 }
 
 void biosEnableFunc(int value) {
@@ -496,6 +494,14 @@ void displayMenu() {
         enableMenuOption("GB Camera");
     else
         disableMenuOption("GB Camera");
+
+    if (gbMode == 0) {
+        enableMenuOption("GB Palette");
+        enableMenuOption("Select Palette");
+    } else {
+        disableMenuOption("GB Palette");
+        disableMenuOption("Select Palette");
+    }
 
     updateScreens();
     doAtVBlank(redrawMenu);

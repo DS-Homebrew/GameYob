@@ -543,7 +543,7 @@ void initGFX()
     for (int i=0; i<128; i++)
         sprites[i].attr0 = ATTR0_DISABLED;
 
-    initGFXPalette();
+    initGFXPalette(true);
 
     gbGraphicsDisabled = true;
     swiWaitForVBlank();
@@ -720,8 +720,9 @@ void determineGBRomPalette(u8* SPR0, u8* SPR1, u8* BGP) {
     }
 }
 
-void initGFXPalette() {
-    memset(bgPaletteData, 0xff, 0x40);
+void initGFXPalette(bool init) {
+    if (init)
+        memset(bgPaletteData, 0xff, 0x40);
     if (gbMode == GB) {
         if (cgbPaletteSelect > 0) {
             u8 SPR0, SPR1, BGP;
@@ -1701,7 +1702,7 @@ void updateBgPalette_GBC(int paletteid, u8* data) {
     u16* dest = BG_PALETTE+paletteid*16+5;
     u16* src = ((u16*)data)+paletteid*4;
     for (int i=0; i<4; i++)
-        *(dest++) = *(src++);
+        *(dest++) = *(src++)&0x7FFF;
 }
 void updateSprPalette(int paletteid, u8* data, u8 dmgPal) {
     int src = paletteid;
