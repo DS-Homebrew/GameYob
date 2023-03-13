@@ -417,7 +417,7 @@ void updatePaletteChooser() {
     else if (keyJustPressed(KEY_A)) {
         // select palette and close
         customPalette = option;
-        initGFXPalette();
+        initGFXPalette(false);
         closeSubMenu();
     }
     else if (keyPressedAutoRepeat(KEY_DOWN)) {
