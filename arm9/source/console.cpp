@@ -850,7 +850,8 @@ void setupUnscaledScreens() {
     if (!consoleInitialized) {
         //consoleDemoInit(); // Or, consoleInit(menuConsole, ...)
         consoleInit(menuConsole, 0, BgType_Text4bpp, BgSize_T_256x256, 2, 0, false, true);
-
+        videoBgDisableSub(2);
+        videoBgDisableSub(3);
         setPrintConsole(menuConsole);
         BG_PALETTE_SUB[8*16 - 1] = RGB15(17,17,17); // Grey (replaces a color established in consoleDemoInit)
         consoleInitialized = true;
