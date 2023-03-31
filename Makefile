@@ -1,53 +1,100 @@
-#---------------------------------------------------------------------------------
-.SUFFIXES:
-#---------------------------------------------------------------------------------
-ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+# SPDX-License-Identifier: CC0-1.0
+#
+# SPDX-FileContributor: Antonio Niño Díaz, 2023
+
+# User config
+# ===========
+
+NAME			:= NeoDS
+
+GAME_TITLE		:= NeoDS
+GAME_SUBTITLE1	:= Built with BlocksDS
+GAME_SUBTITLE2	:= http://skylyrac.net
+GAME_ICON		:= icon.bmp
+
+# DLDI and internal SD slot of DSi
+# --------------------------------
+
+# Root folder of the SD image
+SDROOT		:= sdroot
+# Name of the generated image it "DSi-1.sd" for no$gba in DSi mode
+SDIMAGE		:= image.bin
+
+# Source code paths
+# -----------------
+
+NITROFATDIR	:=
+
+# Tools
+# -----
+
+MAKE		:= make
+RM			:= rm -rf
+
+# Verbose flag
+# ------------
+
+ifeq ($(VERBOSE),1)
+V		:=
+else
+V		:= @
 endif
 
-include $(DEVKITARM)/ds_rules
+# Directories
+# -----------
 
-export GAME_TITLE	:=	GameYob `git describe --always --abbrev=4`
-export GAME_SUBTITLE1	:=	A Gameboy emulator for DS
-export GAME_SUBTITLE2	:=	Author: Drenn
-export GAME_ICON	:=	$(CURDIR)/icon.bmp
-export TARGET		:=	gameyob
+ARM9DIR		:= arm9
+ARM7DIR		:= arm7
 
-# DSi stuff
-TID = 00030004
-GID = GYOB
+# Build artfacts
+# --------------
 
+NITROFAT_IMG	:= build/nitrofat.bin
+ROM				:= $(NAME).nds
 
-.PHONY: arm7/$(TARGET).elf arm9/$(TARGET).elf
+# Targets
+# -------
 
-#---------------------------------------------------------------------------------
-# main targets
-#---------------------------------------------------------------------------------
-all: $(TARGET).nds $(TARGET).cia
+.PHONY: all clean arm9 arm7 dldipatch sdimage
 
-#---------------------------------------------------------------------------------
-$(TARGET).nds	:	arm7/$(TARGET).elf arm9/$(TARGET).elf
-	@ndstool -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf -b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)" -h 0x200 -c $(TARGET).nds 
-	@echo built ... $(notdir $@)
+all: $(ROM)
 
-$(TARGET)_dsi.nds: arm7/$(TARGET).elf arm9/$(TARGET).elf
-	@ndstool -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf -b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)" -g $(GID) -u $(TID) -c $@
-	@echo built ... $(notdir $@)
-
-$(TARGET).cia: $(TARGET)_dsi.nds
-	@make_cia --srl=$(TARGET)_dsi.nds
-	@mv $(TARGET)_dsi.cia $(TARGET).cia
-
-#---------------------------------------------------------------------------------
-arm7/$(TARGET).elf:
-	$(MAKE) -C arm7
-	
-#---------------------------------------------------------------------------------
-arm9/$(TARGET).elf:
-	$(MAKE) -C arm9
-
-#---------------------------------------------------------------------------------
 clean:
-	$(MAKE) -C arm9 clean
-	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).nds $(TARGET).dsi $(TARGET).cia $(TARGET).arm7 $(TARGET).arm9
+	@echo "  CLEAN"
+	$(V)$(MAKE) -f arm9/Makefile clean --no-print-directory
+	$(V)$(MAKE) -f arm7/Makefile clean --no-print-directory
+	$(V)$(RM) $(ROM) build $(SDIMAGE)
+
+arm9:
+	$(V)+$(MAKE) -f arm9/Makefile --no-print-directory
+
+arm7:
+	$(V)+$(MAKE) -f arm7/Makefile --no-print-directory
+
+ifneq ($(strip $(NITROFATDIR)),)
+# Additional arguments for ndstool
+NDSTOOL_FAT	:= -F $(NITROFAT_IMG)
+
+$(NITROFAT_IMG): $(NITROFATDIR)
+	@echo "  IMGBUILD $@ $(NITROFATDIR)"
+	$(V)sh $(BLOCKSDS)/tools/imgbuild/imgbuild.sh $@ $(NITROFATDIR)
+
+# Make the NDS ROM depend on the filesystem image only if it is needed
+$(ROM): $(NITROFAT_IMG)
+endif
+
+$(ROM): arm9 arm7
+	@echo "  NDSTOOL $@"
+	$(V)$(BLOCKSDS)/tools/ndstool/ndstool -c $@ \
+		-7 arm7/build/arm7.elf -9 arm9/build/arm9.elf \
+		-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)" \
+		$(NDSTOOL_FAT)
+
+sdimage:
+	@echo "  IMGBUILD $(SDIMAGE) $(SDROOT)"
+	$(V)sh $(BLOCKSDS)/tools/imgbuild/imgbuild.sh $(SDIMAGE) $(SDROOT)
+
+dldipatch: $(ROM)
+	@echo "  DLDITOOL $(ROM)"
+	$(V)$(BLOCKSDS)/tools/dlditool/dlditool \
+		$(BLOCKSDS)/tools/dldi/r4tfv2.dldi $(ROM)
