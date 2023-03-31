@@ -13,7 +13,7 @@
 
 bool     cheatsEnabled = true;
 cheat_t  cheats[MAX_CHEATS];
-int numCheats=0;
+int numCheats = 0;
 
 // Use this to check whether another rom has been loaded
 char cheatsRomTitle[20] = "\0";

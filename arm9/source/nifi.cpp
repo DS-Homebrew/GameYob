@@ -89,6 +89,7 @@ void packetHandler(int packetID, int readlength)
 void enableNifi()
 {
 	Wifi_InitDefault(false);
+    Wifi_SetRawPacketMode(PACKET_MODE_NIFI)
 
 // Wifi_SetPromiscuousMode: Allows the DS to enter or leave a "promsicuous" mode, in which 
 //   all data that can be received is forwarded to the arm9 for user processing.

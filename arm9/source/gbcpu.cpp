@@ -9,7 +9,7 @@
 #include "gbsnd.h"
 #include "gameboy.h"
 #include "main.h"
-#ifdef DS
+#ifdef __NDS__
 #include <nds.h>
 #endif
 
@@ -43,14 +43,14 @@ inline void quickWrite(u16 addr, u8 val) {
 }
 
 struct Registers gbRegs
-#ifdef DS
+#ifdef __NDS__
 DTCM_BSS
 #endif
 ;
 int halt;
 
 u8 opCycles[0x100]
-#ifdef DS
+#ifdef __NDS__
 DTCM_DATA
 #endif
 = {
@@ -77,7 +77,7 @@ DTCM_DATA
 };
 
 u8 CBopCycles[0x100]
-#ifdef DS
+#ifdef __NDS__
 DTCM_DATA
 #endif
 = {
@@ -182,7 +182,7 @@ const u8 reg8Offsets[] = {
 
 int cyclesToExecute DTCM_BSS;
 
-#ifdef DS
+#ifdef __NDS__
 int runOpcode(int cycles) ITCM_CODE;
 #endif
 

@@ -1,146 +1,214 @@
-#---------------------------------------------------------------------------------
-.SUFFIXES:
-#---------------------------------------------------------------------------------
-ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+# SPDX-License-Identifier: CC0-1.0
+#
+# SPDX-FileContributor: Antonio Niño Díaz, 2023
+
+ifeq ($(strip $(BLOCKSDS)),)
+    $(error "Environment variable BLOCKSDS not found")
 endif
 
-include $(DEVKITARM)/ds_rules
+# Source code paths
+# -----------------
 
-TARGET :=	gameyob
-#---------------------------------------------------------------------------------
-# BUILD is the directory where object files & intermediate files will be placed
-# SOURCES is a list of directories containing source code
-# INCLUDES is a list of directories containing extra header files
-# DATA is a list of directories containing binary files
-# all directories are relative to this makefile
-#---------------------------------------------------------------------------------
-BUILD		:=	build
-SOURCES		:=	source
-INCLUDES	:=	include ../include
-DATA		:=
-GFX			:= gfx/
+SOURCEDIRS	:= arm9/source
+INCLUDEDIRS	:= include arm9/include
+GFXDIRS		:= arm9/gfx
+BINDIRS		:= 
+AUDIODIRS	:= 
 
-#---------------------------------------------------------------------------------
-# options for code generation
-#---------------------------------------------------------------------------------
-ARCH	:=	# -mthumb -mthumb-interwork	#This may cause some problem when there are some cross-calls between C&Assembly. It also ends up being slower than non-Thumb code.
+# Defines passed to all files
+# ---------------------------
 
-CFLAGS	:=	-Wall -Wno-psabi -DNO_VIZ\
- 			-march=armv5te -mtune=arm946e-s -fomit-frame-pointer\
-			-ffast-math -O3 $(ARCH) \
-			-DVERSION_STRING=\"`git describe --always --abbrev=4`\"
-			#-O3 -fpeel-loops -fno-pic -finline -fearly-inlining \
+DEFINES		:=
 
-CFLAGS	+=	$(INCLUDE) -DARM9 -DDS
-CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
+# Libraries
+# ---------
 
-ASFLAGS	:=	$(ARCH) -march=armv5te -mtune=arm946e-s $(CFLAGS)
+LIBS		:= -ldswifi9 -lstdc++ -lnds9 -lc
+LIBDIRS		:=	extlib/dswifi \
+				$(BLOCKSDS)/libs/libstdc++9 \
+				$(BLOCKSDS)/libs/libnds
 
-LDFLAGS	=	-specs=ds_arm9.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
+# Build artifacts
+# ---------------
 
-#---------------------------------------------------------------------------------
-# any extra libraries we wish to link with the project
-#---------------------------------------------------------------------------------
-LIBS	:=	-lfat -ldsnifi9 -lnds9
- 
-#---------------------------------------------------------------------------------
-# list of directories containing libraries, this must be the top level containing
-# include and lib
-#---------------------------------------------------------------------------------
-LIBDIRS	:= $(CURDIR) ../ $(LIBNDS)
+BUILDDIR	:= arm9/build
+NAME		:= arm9
+ELF			:= arm9/build/$(NAME).elf
+DUMP		:= arm9/build/$(NAME).dump
+MAP			:= arm9/build/$(NAME).map
+SOUNDBANKDIR	:= 
 
+# Tools
+# -----
 
-#---------------------------------------------------------------------------------
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#---------------------------------------------------------------------------------
-ifneq ($(BUILD),$(notdir $(CURDIR)))
-#---------------------------------------------------------------------------------
- 
-export ARM9ELF	:=	$(CURDIR)/$(TARGET).elf
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+PREFIX		:= arm-none-eabi-
+CC			:= $(PREFIX)gcc
+CXX			:= $(PREFIX)g++
+OBJDUMP		:= $(PREFIX)objdump
+MKDIR		:= mkdir
+RM			:= rm -rf
 
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-					$(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
-					$(foreach dir,$(GFX),$(CURDIR)/$(dir))
- 
-CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
-GFX_FILES   :=  $(foreach dir, $(GFX),$(notdir $(wildcard $(dir)/*.png)))
- 
-#---------------------------------------------------------------------------------
-# use CXX for linking C++ projects, CC for standard C
-#---------------------------------------------------------------------------------
-ifeq ($(strip $(CPPFILES)),)
-#---------------------------------------------------------------------------------
-	export LD	:=	$(CC)
-#---------------------------------------------------------------------------------
+# Verbose flag
+# ------------
+
+ifeq ($(VERBOSE),1)
+V		:=
 else
-#---------------------------------------------------------------------------------
-	export LD	:=	$(CXX)
-#---------------------------------------------------------------------------------
+V		:= @
 endif
-#---------------------------------------------------------------------------------
 
-export OFILES	:=	$(GFX_FILES:.png=.o) \
-					$(addsuffix .o,$(BINFILES)) \
-					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
- 
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
- 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
- 
-.PHONY: $(BUILD) clean
- 
-#---------------------------------------------------------------------------------
-$(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
- 
-#---------------------------------------------------------------------------------
+# Source files
+# ------------
+
+ifneq ($(BINDIRS),)
+    SOURCES_BIN	:= $(shell find -L $(BINDIRS) -name "*.bin")
+    INCLUDEDIRS	+= $(addprefix $(BUILDDIR)/,$(BINDIRS))
+endif
+ifneq ($(GFXDIRS),)
+    SOURCES_PNG	:= $(shell find -L $(GFXDIRS) -name "*.png")
+    INCLUDEDIRS	+= $(addprefix $(BUILDDIR)/,$(GFXDIRS))
+endif
+ifneq ($(AUDIODIRS),)
+    SOURCES_AUDIO	:= $(shell find -L $(AUDIODIRS) -regex '.*\.\(it\|mod\|s3m\|wav\|xm\)')
+    ifneq ($(SOURCES_AUDIO),)
+        INCLUDEDIRS	+= $(SOUNDBANKDIR)
+    endif
+endif
+
+SOURCES_S	:= $(shell find -L $(SOURCEDIRS) -name "*.s")
+SOURCES_C	:= $(shell find -L $(SOURCEDIRS) -name "*.c")
+SOURCES_CPP	:= $(shell find -L $(SOURCEDIRS) -name "*.cpp")
+
+# Compiler and linker flags
+# -------------------------
+
+DEFINES		+= -D__NDS__ -DARM9
+
+ARCH		:= -march=armv5te -mtune=arm946e-s
+
+WARNFLAGS	:= -Wall
+
+ifeq ($(SOURCES_CPP),)
+    LD	:= $(CC)
+else
+    LD	:= $(CXX)
+endif
+
+INCLUDEFLAGS	:= $(foreach path,$(INCLUDEDIRS),-I$(path)) \
+		   $(foreach path,$(LIBDIRS),-I$(path)/include)
+
+LIBDIRSFLAGS	:= $(foreach path,$(LIBDIRS),-L$(path)/lib)
+
+ASFLAGS		+= -x assembler-with-cpp $(DEFINES) $(ARCH) \
+		   -mthumb -mthumb-interwork $(INCLUDEFLAGS) \
+		   -ffunction-sections -fdata-sections
+
+CFLAGS		+= -std=gnu11 $(WARNFLAGS) $(DEFINES) $(ARCH) \
+		   -mthumb -mthumb-interwork $(INCLUDEFLAGS) -O2 \
+		   -ffunction-sections -fdata-sections \
+		   -fomit-frame-pointer
+
+CXXFLAGS	+= -std=gnu++14 $(WARNFLAGS) $(DEFINES) $(ARCH) \
+		   -mthumb -mthumb-interwork $(INCLUDEFLAGS) -O2 \
+		   -ffunction-sections -fdata-sections \
+		   -fno-exceptions -fno-rtti \
+		   -fomit-frame-pointer
+
+LDFLAGS		:= -mthumb -mthumb-interwork $(LIBDIRSFLAGS) \
+		   -Wl,-Map,$(MAP) -Wl,--gc-sections -nolibc -nostartfiles \
+		   -Tarm9/ds_arm9_hi.mem \
+		   -T$(BLOCKSDS)/sys/crts/ds_arm9.ld \
+		   -Wl,--start-group $(LIBS) -Wl,--end-group
+
+# Intermediate build files
+# ------------------------
+
+OBJS_ASSETS	:= $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(SOURCES_BIN))) \
+		   $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(SOURCES_PNG)))
+
+HEADERS_ASSETS	:= $(patsubst %.bin,%_bin.h,$(addprefix $(BUILDDIR)/,$(SOURCES_BIN))) \
+		   $(patsubst %.png,%.h,$(addprefix $(BUILDDIR)/,$(SOURCES_PNG)))
+
+ifneq ($(SOURCES_AUDIO),)
+    OBJS_ASSETS		+= $(SOUNDBANKDIR)/soundbank.c.o
+    HEADERS_ASSETS	+= $(SOUNDBANKDIR)/soundbank.h
+endif
+
+OBJS_SOURCES	:= $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(SOURCES_S))) \
+		   $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(SOURCES_C))) \
+		   $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(SOURCES_CPP)))
+
+OBJS		:= $(OBJS_ASSETS) $(OBJS_SOURCES)
+
+DEPS		:= $(OBJS:.o=.d)
+
+# Targets
+# -------
+
+.PHONY: all clean dump
+
+all: $(ELF)
+
+$(ELF): $(OBJS)
+	@echo "  LD.9    $@"
+	$(V)$(LD) -o $@ $(OBJS) $(BLOCKSDS)/sys/crts/ds_arm9_crt0.o $(LDFLAGS)
+
+$(DUMP): $(ELF)
+	@echo "  OBJDUMP.9 $@"
+	$(V)$(OBJDUMP) -h -C -S $< > $@
+
+dump: $(DUMP)
+
 clean:
-	@echo clean ...
-	@rm -fr $(BUILD) *.elf *.nds* *.bin 
- 
+	@echo "  CLEAN.9"
+	$(V)$(RM) $(ELF) $(DUMP) $(MAP) $(BUILDDIR)
 
- 
-#---------------------------------------------------------------------------------
-else
- 
-#---------------------------------------------------------------------------------
-# main targets
-#---------------------------------------------------------------------------------
-$(ARM9ELF)	:	$(OFILES)
-	@echo linking $(notdir $@)
-	@$(LD)  $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
+# Rules
+# -----
 
+$(BUILDDIR)/%.s.o : %.s
+	@echo "  AS.9    $<"
+	@$(MKDIR) -p $(@D)
+	$(V)$(CC) $(ASFLAGS) -MMD -MP -c -o $@ $<
 
-# Always rebuild version.cpp
-.FORCE:
-version.o: .FORCE
+$(BUILDDIR)/%.c.o : %.c
+	@echo "  CC.9    $<"
+	@$(MKDIR) -p $(@D)
+	$(V)$(CC) $(CFLAGS) -MMD -MP -c -o $@ $<
 
+$(BUILDDIR)/%.cpp.o : %.cpp
+	@echo "  CXX.9   $<"
+	@$(MKDIR) -p $(@D)
+	$(V)$(CXX) $(CXXFLAGS) -MMD -MP -c -o $@ $<
 
-#---------------------------------------------------------------------------------
-%.s %.h : %.png
-	grit $< -ff../gfx/icon.grit -o$*
-#---------------------------------------------------------------------------------
+$(BUILDDIR)/%.bin.o $(BUILDDIR)/%_bin.h : %.bin
+	@echo "  BIN2C.9 $<"
+	@$(MKDIR) -p $(@D)
+	$(V)$(BLOCKSDS)/tools/bin2c/bin2c $< $(@D)
+	$(V)$(CC) $(CFLAGS) -MMD -MP -c -o $(BUILDDIR)/$*.bin.o $(BUILDDIR)/$*_bin.c
 
+$(BUILDDIR)/%.png.o $(BUILDDIR)/%.h : %.png %.grit
+	@echo "  GRIT.9  $<"
+	@$(MKDIR) -p $(@D)
+	$(V)$(BLOCKSDS)/tools/grit/grit $< -ftc -W1 -o$(BUILDDIR)/$*
+	$(V)$(CC) $(CFLAGS) -MMD -MP -c -o $(BUILDDIR)/$*.png.o $(BUILDDIR)/$*.c
 
-#---------------------------------------------------------------------------------
-# you need a rule like this for each extension you use as binary data 
-#---------------------------------------------------------------------------------
-%.bin.o	:	%.bin
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
+$(SOUNDBANKDIR)/soundbank.c.o $(SOUNDBANKDIR)/soundbank.h : $(SOURCES_AUDIO)
+	@echo "  MMUTIL $^"
+	@$(MKDIR) -p $(@D)
+	@$(BLOCKSDS)/tools/mmutil/mmutil $^ -d \
+		-o$(SOUNDBANKDIR)/soundbank.bin -h$(SOUNDBANKDIR)/soundbank.h
+	$(V)$(BLOCKSDS)/tools/bin2c/bin2c $(SOUNDBANKDIR)/soundbank.bin \
+		$(SOUNDBANKDIR)
+	$(V)$(CC) $(CFLAGS) -MMD -MP -c -o $(SOUNDBANKDIR)/soundbank.c.o \
+		$(SOUNDBANKDIR)/soundbank_bin.c
 
--include $(DEPSDIR)/*.d
- 
-#---------------------------------------------------------------------------------------
-endif
-#---------------------------------------------------------------------------------------
+# All assets must be built before the source code
+# -----------------------------------------------
+
+$(SOURCES_S) $(SOURCES_C) $(SOURCES_CPP): $(HEADERS_ASSETS)
+
+# Include dependency files if they exist
+# --------------------------------------
+
+-include $(DEPS)
