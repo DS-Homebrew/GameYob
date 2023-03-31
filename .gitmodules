@@ -1,0 +1,3 @@
+[submodule "extlib/dswifi"]
+	path = extlib/dswifi
+	url = https://github.com/NightScript370/dswifi.git
