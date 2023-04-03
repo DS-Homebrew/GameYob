@@ -26,6 +26,7 @@ void transferWaitingTimeoutFunc() {
 
 void packetHandler(int packetID, int readlength)
 {
+#if 0
     static char data[4096];
     // static int bytesRead = 0; // Not used
 
@@ -82,14 +83,16 @@ void packetHandler(int packetID, int readlength)
                 break;
         }
     }
+#endif
 }
 
 
 
 void enableNifi()
 {
+#if 0
 	Wifi_InitDefault(false);
-    Wifi_SetRawPacketMode(PACKET_MODE_NIFI)
+    Wifi_SetRawPacketMode(PACKET_MODE_NIFI);
 
 // Wifi_SetPromiscuousMode: Allows the DS to enter or leave a "promsicuous" mode, in which 
 //   all data that can be received is forwarded to the arm9 for user processing.
@@ -118,6 +121,7 @@ void enableNifi()
 void disableNifi() {
     Wifi_DisableWifi();
     nifiEnabled = false;
+#endif
 }
 
 

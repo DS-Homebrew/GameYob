@@ -2,9 +2,8 @@
 #
 # SPDX-FileContributor: Antonio Niño Díaz, 2023
 
-ifeq ($(strip $(BLOCKSDS)),)
-    $(error "Environment variable BLOCKSDS not found")
-endif
+BLOCKSDS	?= /opt/blocksds/core
+BLOCKSDSEXT	?= /opt/blocksds/external
 
 # Source code paths
 # -----------------
@@ -28,11 +27,11 @@ LIBDIRS		:=	extlib/dswifi \
 # Build artifacts
 # -----------------
 
-BUILDDIR	:= arm7/build
+BUILDDIR	:= build/arm7
 NAME		:= arm7
-ELF			:= arm7/build/$(NAME).elf
-DUMP		:= arm7/build/$(NAME).dump
-MAP			:= arm7/build/$(NAME).map
+ELF			:= build/$(NAME).elf
+DUMP		:= build/$(NAME).dump
+MAP			:= build/$(NAME).map
 
 # Tools
 # -----
@@ -101,9 +100,10 @@ CXXFLAGS	+= -std=gnu++14 $(WARNFLAGS) $(DEFINES) $(ARCH) \
 		   -fomit-frame-pointer
 
 LDFLAGS		:= -mthumb -mthumb-interwork $(LIBDIRSFLAGS) \
-		   -Wl,-Map,$(MAP) -Wl,--gc-sections -nolibc -nostartfiles \
+		   -Wl,-Map,$(MAP) -Wl,--gc-sections -nostdlib \
 		   -T$(BLOCKSDS)/sys/crts/ds_arm7.ld \
-		   -Wl,--start-group $(LIBS) -Wl,--end-group
+		   -Wl,--no-warn-rwx-segments \
+		   -Wl,--start-group $(LIBS) -lgcc -Wl,--end-group
 
 # Intermediate build files
 # ------------------------

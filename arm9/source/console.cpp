@@ -122,6 +122,7 @@ void returnToLauncherFunc(int value) {
 }
 
 void nifiEnableFunc(int value) {
+#if 0
     if (value) {
 		printMenuMessage("Warning: link emulation sucks.");
         setMenuOption("GB Printer", 0);
@@ -129,6 +130,7 @@ void nifiEnableFunc(int value) {
 	}
     else
         disableNifi();
+#endif
 }
 
 void printerEnableFunc(int value) {
@@ -974,31 +976,12 @@ void consoleSetLineColor(int line, int color) {
 }
 
 void iprintfColoredExt(int palette, bool linebreak, const char *format, va_list args) {
-    PrintConsole* console = getPrintConsole();
-    int x = console->cursorX;
-    int y = console->cursorY;
+    printf("\x1b[%d;1m", palette);
 
-    char s[100];
-    vsprintf(s, format, args);
+    vprintf(format, args);
 
-    u16* dest = console->fontBgMap+y*32+x;
-    for (uint i=0; i<strlen(s); i++) {
-        if (s[i] == '\n') {
-            x = 0;
-            y++;
-        }
-        else {
-            *(dest++) = s[i] | TILE_PALETTE(palette);
-            x++;
-            if (x == 32) {
-                x = 0;
-                y += linebreak ? 1 : 0;
-            }
-        }
-    }
-    console->cursorX = x;
-    console->cursorY = y;
-    //iprintf(s);
+    // Reset color to white
+    printf("\x1b[39;0m");
 }
 
 void iprintfColored(int palette, const char *format, ...) {

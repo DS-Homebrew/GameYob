@@ -11,7 +11,7 @@
 #include "sgb.h"
 #include "console.h"
 #include "gbs.h"
-#include "camera.h"
+//#include "camera.h"
 #ifdef __NDS__
 #include <nds.h>
 #define CAMERA_NDMA_CHANNEL 1
@@ -1148,6 +1148,7 @@ void doRumble(bool rumbleVal)
 }
 
 void system_enableCamera(int index) {
+#if 0
     if (index == camActive) return;
 
     if (!camInit) {
@@ -1165,14 +1166,18 @@ void system_enableCamera(int index) {
             break;
     }
     camActive = index;
+#endif
 }
 
 void system_disableCamera(void) {
+#if 0
     cameraDeactivateAny();
     free(camData);
     camInit = false;
+#endif
 }
 
+#if 0
 // Image processed by sensor chip
 static s16 gb_cam_retina_output_buf[GBCAM_SENSOR_W][GBCAM_SENSOR_H];
 static s16 temp_buf[GBCAM_SENSOR_W][GBCAM_SENSOR_H]; 
@@ -1205,9 +1210,11 @@ static u8 gb_cam_matrix_process(u8 value, u8 x, u8 y, const u8* CAM_REG)
     else if(value < r2) return 1;
     return 0;
 }
+#endif
 
 void system_getCamera(u8* memory, const u8* camRegisters)
 {
+#if 0
     if (!camInit)
         return;
 
@@ -1386,4 +1393,5 @@ void system_getCamera(u8* memory, const u8* camRegisters)
         if(outcolor & 1) tile_base[0] |= 1<<(7-(7&i));
         if(outcolor & 2) tile_base[1] |= 1<<(7-(7&i));
     }
+#endif
 }
