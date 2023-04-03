@@ -237,13 +237,13 @@ void gameboyUpdateVBlank() {
         int line=0;
         if (fpsOutput) {
             consoleClear();
-            iprintf("FPS: %d\n", fps);
+            printf("FPS: %d\n", fps);
             line++;
         }
         fps = 0;
         if (timeOutput) {
             for (; line<23-1; line++)
-                iprintf("\n");
+                printf("\n");
             char *timeString = ctime(&rawTime);
             for (int i=0;; i++) {
                 if (timeString[i] == ':') {
@@ -256,8 +256,8 @@ void gameboyUpdateVBlank() {
             s[5] = '\0';
             int spaces = 31-strlen(s);
             for (int i=0; i<spaces; i++)
-                iprintf(" ");
-            iprintf("%s\n", s);
+                printf(" ");
+            printf("%s\n", s);
         }
         lastRawTime = rawTime;
     }

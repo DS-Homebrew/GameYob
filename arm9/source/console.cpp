@@ -534,10 +534,10 @@ void redrawMenu() {
         iprintfColored(CONSOLE_COLOR_LIGHT_GREEN, "<");
     }
     else
-        iprintf("<");
+        printf("<");
     pos++;
     for (; pos<nameStart; pos++)
-        iprintf(" ");
+        printf(" ");
     if (option == -1) {
         iprintfColored(CONSOLE_COLOR_LIGHT_YELLOW, "* ");
         pos += 2;
@@ -552,12 +552,12 @@ void redrawMenu() {
         pos += 2;
     }
     for (; pos < 31; pos++)
-        iprintf(" ");
+        printf(" ");
     if (option == -1)
         iprintfColored(CONSOLE_COLOR_LIGHT_GREEN, ">");
     else
-        iprintf(">");
-    iprintf("\n");
+        printf(">");
+    printf("\n");
 
     // Rest of the lines: options
     for (int i=0; i<menuList[menu].numOptions; i++) {
@@ -571,7 +571,7 @@ void redrawMenu() {
 
         if (menuList[menu].options[i].numValues == 0) {
             for (unsigned int j=0; j<(32-strlen(menuList[menu].options[i].name))/2-2; j++)
-                iprintf(" ");
+                printf(" ");
             if (i == option) {
                 iprintfColored(option_color, "* %s *\n\n", menuList[menu].options[i].name);
             }
@@ -580,7 +580,7 @@ void redrawMenu() {
         }
         else {
             for (unsigned int j=0; j<16-strlen(menuList[menu].options[i].name); j++)
-                iprintf(" ");
+                printf(" ");
             if (i == option) {
                 iprintfColored(option_color, "* ");
                 iprintfColored(option_color, "%s  ", menuList[menu].options[i].name);
@@ -589,11 +589,11 @@ void redrawMenu() {
                 iprintfColoredNoBreak(option_color, " *");
             }
             else {
-                iprintf("  ");
+                printf("  ");
                 iprintfColored(option_color, "%s  ", menuList[menu].options[i].name);
                 iprintfColored(option_color, "%s", menuList[menu].options[i].values[menuList[menu].options[i].selection]);
             }
-            iprintf("\n\n");
+            printf("\n\n");
         }
     }
 
@@ -601,11 +601,11 @@ void redrawMenu() {
     if (printMessage[0] != '\0') {
         int newlines = 23-(menuList[menu].numOptions*2+2)-1;
         for (int i=0; i<newlines; i++)
-            iprintf("\n");
+            printf("\n");
         int spaces = 31-strlen(printMessage);
         for (int i=0; i<spaces; i++)
-            iprintf(" ");
-        iprintf("%s\n", printMessage);
+            printf(" ");
+        printf("%s\n", printMessage);
 
         printMessage[0] = '\0';
     }
@@ -704,17 +704,17 @@ void printMenuMessage(const char* s) {
     strncpy(printMessage, s, 33);
 
     if (hadPreviousMessage) {
-        iprintf("\r");
+        printf("\r");
     }
     else {
         int newlines = 23-(menuList[menu].numOptions*2+2)-1;
         for (int i=0; i<newlines; i++)
-            iprintf("\n");
+            printf("\n");
     }
     int spaces = 31-strlen(printMessage);
     for (int i=0; i<spaces; i++)
-        iprintf(" ");
-    iprintf("%s", printMessage);
+        printf(" ");
+    printf("%s", printMessage);
 }
 
 void displaySubMenu(void (*updateFunc)()) {
@@ -799,10 +799,10 @@ void menuPrintConfig(FILE* file) {
     for (int i=0; i<numMenus; i++) {
         for (int j=0; j<menuList[i].numOptions; j++) {
             if (menuList[i].options[j].numValues != 0)
-                fiprintf(file, "%s=%d\n", menuList[i].options[j].name, menuList[i].options[j].selection);
+                fprintf(file, "%s=%d\n", menuList[i].options[j].name, menuList[i].options[j].selection);
         }
     }
-    fiprintf(file, "Current Palette=%d\n", customPalette);
+    fprintf(file, "Current Palette=%d\n", customPalette);
 }
 
 void printLog(const char *format, ...) {
@@ -812,7 +812,7 @@ void printLog(const char *format, ...) {
     va_start(args, format);
 
     if (consoleDebugOutput)
-        viprintf(format, args);
+        vprintf(format, args);
 }
 
 
@@ -979,7 +979,7 @@ void iprintfColoredExt(int palette, bool linebreak, const char *format, va_list 
     int y = console->cursorY;
 
     char s[100];
-    vsiprintf(s, format, args);
+    vsprintf(s, format, args);
 
     u16* dest = console->fontBgMap+y*32+x;
     for (uint i=0; i<strlen(s); i++) {

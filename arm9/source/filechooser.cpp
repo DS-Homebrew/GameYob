@@ -218,7 +218,7 @@ char* startFileChooser(const char* extensions[], bool romExtensions, bool canQui
     DIR* dp = opendir(cwd);
     struct dirent *entry;
     if (dp == NULL) {
-        iprintf("Error opening directory.\n");
+        printf("Error opening directory.\n");
         return 0;
     }
     while (true) {
@@ -323,13 +323,13 @@ char* startFileChooser(const char* extensions[], bool romExtensions, bool canQui
             consoleClear();
             for (int i=scrollY; i<scrollY+filesPerPage && i<numFiles; i++) {
                 if (i == fileSelection)
-                    iprintf("* ");
+                    printf("* ");
                 else if (i == scrollY && i != 0)
-                    iprintf("^ ");
+                    printf("^ ");
                 else if (i == scrollY+filesPerPage-1 && scrollY+filesPerPage-1 != numFiles-1)
-                    iprintf("v ");
+                    printf("v ");
                 else
-                    iprintf("  ");
+                    printf("  ");
 
                 int maxLen = 30;
                 if (flags[i] & FLAG_DIRECTORY)

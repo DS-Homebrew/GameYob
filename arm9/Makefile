@@ -11,7 +11,7 @@ endif
 
 SOURCEDIRS	:= arm9/source
 INCLUDEDIRS	:= include arm9/include
-GFXDIRS		:= arm9/gfx
+GFXDIRS		:= gfx
 BINDIRS		:= 
 AUDIODIRS	:= 
 
@@ -65,7 +65,7 @@ ifneq ($(BINDIRS),)
     INCLUDEDIRS	+= $(addprefix $(BUILDDIR)/,$(BINDIRS))
 endif
 ifneq ($(GFXDIRS),)
-    SOURCES_PNG	:= $(shell find -L $(GFXDIRS) -name "*.png")
+    SOURCES_PNG	:= $(shell cd $(NAME) && find -L $(GFXDIRS) -name "*.png")
     INCLUDEDIRS	+= $(addprefix $(BUILDDIR)/,$(GFXDIRS))
 endif
 ifneq ($(AUDIODIRS),)

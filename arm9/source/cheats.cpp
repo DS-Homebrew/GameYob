@@ -213,13 +213,13 @@ void redrawCheatMenu() {
 
     int page = cheatMenuSelection/cheatsPerPage;
     consoleClear();
-    iprintf("          Cheat Menu      ");
-    iprintf("%d/%d\n\n", page+1, numPages);
+    printf("          Cheat Menu      ");
+    printf("%d/%d\n\n", page+1, numPages);
     for (int i=page*cheatsPerPage; i<numCheats && i < (page+1)*cheatsPerPage; i++) {
         int nameColor = (cheatMenuSelection == i ? CONSOLE_COLOR_LIGHT_YELLOW : CONSOLE_COLOR_WHITE);
         iprintfColored(nameColor, cheats[i].name);
         for (unsigned int j=0; j<25-strlen(cheats[i].name); j++)
-            iprintf(" ");
+            printf(" ");
         if (cheats[i].flags & FLAG_ENABLED) {
             if (cheatMenuSelection == i) {
                 iprintfColored(CONSOLE_COLOR_LIGHT_YELLOW, "* ");
@@ -303,7 +303,7 @@ void saveCheats(const char* filename) {
         return;
     FILE* file = fopen(filename, "w");
     for (int i=0; i<numCheats; i++) {
-        fiprintf(file, "%s %d%s\n", cheats[i].cheatString, !!(cheats[i].flags & FLAG_ENABLED), cheats[i].name);
+        fprintf(file, "%s %d%s\n", cheats[i].cheatString, !!(cheats[i].flags & FLAG_ENABLED), cheats[i].name);
     }
     fclose(file);
 }
