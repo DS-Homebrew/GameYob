@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <vector>
 #include <string>
 #include "filechooser.h"
@@ -297,7 +298,8 @@ char* startFileChooser(const char* extensions[], bool romExtensions, bool canQui
             }
         }
 
-        quickSort(filenames, flags, nameSortFunction, 0, numFiles - 1);
+        if (numFiles > 0)
+            quickSort(filenames, flags, nameSortFunction, 0, numFiles - 1);
 
         if (fileSelection >= numFiles)
             fileSelection = 0;
@@ -385,7 +387,8 @@ char* startFileChooser(const char* extensions[], bool romExtensions, bool canQui
                     }
                 }
                 else if (keyJustPressed(KEY_B)) {
-                    if (numFiles >= 1 && strcmp(filenames[0], "..") == 0) {
+                    struct stat statbuf;
+                    if (stat("..", &statbuf) == 0) {
 lowerDirectory:
                         // Select this directory when going up
                         getcwd(cwd, 256);
