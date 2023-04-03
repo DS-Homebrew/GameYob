@@ -33,24 +33,24 @@ void gbsRedraw() {
     
     PrintConsole* oldPrintConsole = getPrintConsole();
     setPrintConsole(gbsConsole);
-    iprintf("\33[0;0H"); // Cursor to upper-left corner
+    printf("\33[0;0H"); // Cursor to upper-left corner
 
-    iprintf("Song %d of %d\33[0K\n", gbsSelectedSong+1, gbsNumSongs);
+    printf("Song %d of %d\33[0K\n", gbsSelectedSong+1, gbsNumSongs);
     if (gbsPlayingSong == -1)
-        iprintf("(Not playing)\33[0K\n\n");
+        printf("(Not playing)\33[0K\n\n");
     else
-        iprintf("(Playing %d)\33[0K\n\n", gbsPlayingSong+1);
+        printf("(Playing %d)\33[0K\n\n", gbsPlayingSong+1);
 
     // Print music information
     for (int i=0; i<3; i++) {
         for (int j=0; j<32; j++) {
             char c = gbsHeader[0x10+i*0x20+j];
             if (c == 0)
-                iprintf(" ");
+                printf(" ");
             else
-                iprintf("%c", c);
+                printf("%c", c);
         }
-        iprintf("\n");
+        printf("\n");
     }
     setPrintConsole(oldPrintConsole);
 }

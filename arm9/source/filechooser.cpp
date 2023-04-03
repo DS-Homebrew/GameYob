@@ -232,7 +232,7 @@ char* startFileChooser(const char* extensions[], bool romExtensions, bool canQui
             char* ext = strrchr(entry->d_name, '.')+1;
             bool isValidExtension = false;
             bool isRomFile = false;
-            if (!(entry->d_type & DT_DIR)) {
+            if (!(entry->d_type == DT_DIR)) {
                 for (int i=0; i<numExtensions; i++) {
                     if (strcasecmp(ext, extensions[i]) == 0) {
                         isValidExtension = true;
@@ -246,10 +246,10 @@ char* startFileChooser(const char* extensions[], bool romExtensions, bool canQui
                 }
             }
 
-            if (entry->d_type & DT_DIR || isValidExtension) {
+            if ((entry->d_type == DT_DIR) || isValidExtension) {
                 if (!(strcmp(".", entry->d_name) == 0)) {
                     int flag = 0;
-                    if (entry->d_type & DT_DIR)
+                    if (entry->d_type == DT_DIR)
                         flag |= FLAG_DIRECTORY;
                     if (isRomFile)
                         flag |= FLAG_ROM;
@@ -276,7 +276,7 @@ char* startFileChooser(const char* extensions[], bool romExtensions, bool canQui
                     numFiles++;
                 }
             }
-            else if (strcasecmp(ext, "yss") == 0 && !(entry->d_type & DT_DIR)) {
+            else if (strcasecmp(ext, "yss") == 0 && !(entry->d_type == DT_DIR)) {
                 bool matched = false;
                 char buffer2[256];
                 strcpy(buffer2, entry->d_name);

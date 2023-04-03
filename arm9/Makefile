@@ -2,18 +2,17 @@
 #
 # SPDX-FileContributor: Antonio Niño Díaz, 2023
 
-ifeq ($(strip $(BLOCKSDS)),)
-    $(error "Environment variable BLOCKSDS not found")
-endif
+BLOCKSDS	?= /opt/blocksds/core
+BLOCKSDSEXT	?= /opt/blocksds/external
 
 # Source code paths
 # -----------------
 
 SOURCEDIRS	:= arm9/source
 INCLUDEDIRS	:= include arm9/include
-GFXDIRS		:= gfx
-BINDIRS		:= 
-AUDIODIRS	:= 
+GFXDIRS		:= arm9/gfx
+BINDIRS		:=
+AUDIODIRS	:=
 
 # Defines passed to all files
 # ---------------------------
@@ -25,18 +24,17 @@ DEFINES		:=
 
 LIBS		:= -ldswifi9 -lstdc++ -lnds9 -lc
 LIBDIRS		:=	extlib/dswifi \
-				$(BLOCKSDS)/libs/libstdc++9 \
 				$(BLOCKSDS)/libs/libnds
 
 # Build artifacts
 # ---------------
 
-BUILDDIR	:= arm9/build
+BUILDDIR	:= build/arm9
 NAME		:= arm9
-ELF			:= arm9/build/$(NAME).elf
-DUMP		:= arm9/build/$(NAME).dump
-MAP			:= arm9/build/$(NAME).map
-SOUNDBANKDIR	:= 
+ELF			:= build/$(NAME).elf
+DUMP		:= build/$(NAME).dump
+MAP			:= build/$(NAME).map
+SOUNDBANKDIR	:=
 
 # Tools
 # -----
@@ -65,7 +63,7 @@ ifneq ($(BINDIRS),)
     INCLUDEDIRS	+= $(addprefix $(BUILDDIR)/,$(BINDIRS))
 endif
 ifneq ($(GFXDIRS),)
-    SOURCES_PNG	:= $(shell cd $(NAME) && find -L $(GFXDIRS) -name "*.png")
+    SOURCES_PNG	:= $(shell find -L $(GFXDIRS) -name "*.png")
     INCLUDEDIRS	+= $(addprefix $(BUILDDIR)/,$(GFXDIRS))
 endif
 ifneq ($(AUDIODIRS),)
@@ -115,10 +113,11 @@ CXXFLAGS	+= -std=gnu++14 $(WARNFLAGS) $(DEFINES) $(ARCH) \
 		   -fomit-frame-pointer
 
 LDFLAGS		:= -mthumb -mthumb-interwork $(LIBDIRSFLAGS) \
-		   -Wl,-Map,$(MAP) -Wl,--gc-sections -nolibc -nostartfiles \
-		   -Tarm9/ds_arm9_hi.mem \
+		   -Wl,-Map,$(MAP) -Wl,--gc-sections -nostdlib \
+		   -T$(BLOCKSDS)/sys/crts/ds_arm9.mem \
 		   -T$(BLOCKSDS)/sys/crts/ds_arm9.ld \
-		   -Wl,--start-group $(LIBS) -Wl,--end-group
+		   -Wl,--no-warn-rwx-segments \
+		   -Wl,--start-group $(LIBS) -lgcc -Wl,--end-group
 
 # Intermediate build files
 # ------------------------
@@ -192,14 +191,19 @@ $(BUILDDIR)/%.png.o $(BUILDDIR)/%.h : %.png %.grit
 	@$(MKDIR) -p $(@D)
 	$(V)$(BLOCKSDS)/tools/grit/grit $< -ftc -W1 -o$(BUILDDIR)/$*
 	$(V)$(CC) $(CFLAGS) -MMD -MP -c -o $(BUILDDIR)/$*.png.o $(BUILDDIR)/$*.c
+	$(V)touch $(BUILDDIR)/$*.png.o $(BUILDDIR)/$*.h
 
-$(SOUNDBANKDIR)/soundbank.c.o $(SOUNDBANKDIR)/soundbank.h : $(SOURCES_AUDIO)
-	@echo "  MMUTIL $^"
+$(SOUNDBANKDIR)/soundbank.h: $(SOURCES_AUDIO)
+	@echo "  MMUTIL  $^"
 	@$(MKDIR) -p $(@D)
 	@$(BLOCKSDS)/tools/mmutil/mmutil $^ -d \
 		-o$(SOUNDBANKDIR)/soundbank.bin -h$(SOUNDBANKDIR)/soundbank.h
+
+$(SOUNDBANKDIR)/soundbank.c.o: $(SOUNDBANKDIR)/soundbank.h
+	@echo "  BIN2C   soundbank.bin"
 	$(V)$(BLOCKSDS)/tools/bin2c/bin2c $(SOUNDBANKDIR)/soundbank.bin \
 		$(SOUNDBANKDIR)
+	@echo "  CC.9    soundbank_bin.c"
 	$(V)$(CC) $(CFLAGS) -MMD -MP -c -o $(SOUNDBANKDIR)/soundbank.c.o \
 		$(SOUNDBANKDIR)/soundbank_bin.c
 

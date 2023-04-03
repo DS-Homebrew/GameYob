@@ -2,14 +2,17 @@
 #
 # SPDX-FileContributor: Antonio Niño Díaz, 2023
 
+BLOCKSDS	?= /opt/blocksds/core
+BLOCKSDSEXT	?= /opt/blocksds/external
+
 # User config
 # ===========
 
-NAME			:= NeoDS
+NAME			:= gameyob
 
-GAME_TITLE		:= NeoDS
+GAME_TITLE		:= GameYob
 GAME_SUBTITLE1	:= Built with BlocksDS
-GAME_SUBTITLE2	:= http://skylyrac.net
+GAME_SUBTITLE2	:= github.com/blocksds/sdk
 GAME_ICON		:= icon.bmp
 
 # DLDI and internal SD slot of DSi
@@ -76,23 +79,30 @@ ifneq ($(strip $(NITROFATDIR)),)
 NDSTOOL_FAT	:= -F $(NITROFAT_IMG)
 
 $(NITROFAT_IMG): $(NITROFATDIR)
-	@echo "  IMGBUILD $@ $(NITROFATDIR)"
-	$(V)sh $(BLOCKSDS)/tools/imgbuild/imgbuild.sh $@ $(NITROFATDIR)
+	@echo "  MKFATIMG $@ $(NITROFATDIR)"
+	$(V)$(BLOCKSDS)/tools/mkfatimg/mkfatimg -t $(NITROFATDIR) $@ 0
 
 # Make the NDS ROM depend on the filesystem image only if it is needed
 $(ROM): $(NITROFAT_IMG)
 endif
 
+# Combine the title strings
+ifeq ($(strip $(GAME_SUBTITLE)),)
+    GAME_FULL_TITLE := $(GAME_TITLE);$(GAME_AUTHOR)
+else
+    GAME_FULL_TITLE := $(GAME_TITLE);$(GAME_SUBTITLE);$(GAME_AUTHOR)
+endif
+
 $(ROM): arm9 arm7
 	@echo "  NDSTOOL $@"
 	$(V)$(BLOCKSDS)/tools/ndstool/ndstool -c $@ \
-		-7 arm7/build/arm7.elf -9 arm9/build/arm9.elf \
-		-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)" \
+		-7 build/arm7.elf -9 build/arm9.elf \
+		-b $(GAME_ICON) "$(GAME_FULL_TITLE)" \
 		$(NDSTOOL_FAT)
 
 sdimage:
-	@echo "  IMGBUILD $(SDIMAGE) $(SDROOT)"
-	$(V)sh $(BLOCKSDS)/tools/imgbuild/imgbuild.sh $(SDIMAGE) $(SDROOT)
+	@echo "  MKFATIMG $(SDIMAGE) $(SDROOT)"
+	$(V)$(BLOCKSDS)/tools/mkfatimg/mkfatimg -t $(SDROOT) $(SDIMAGE) 0
 
 dldipatch: $(ROM)
 	@echo "  DLDITOOL $(ROM)"

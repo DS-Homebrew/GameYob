@@ -8,7 +8,6 @@
 #include <dirent.h>
 #include <unistd.h>
 
-#include "libfat_fake.h"
 #include "inputhelper.h"
 #include "mmu.h"
 #include "gameboy.h"
@@ -101,8 +100,8 @@ bool suspendStateExists;
 
 void initInput()
 {
-    fatInit(FAT_CACHE_SIZE, true);
-    //fatInitDefault();
+    //fatInit(FAT_CACHE_SIZE, true);
+    fatInitDefault();
 
     if (isDSiMode())
         maxLoadedRomBanks = 512; // 8 megabytes
@@ -117,9 +116,12 @@ void initInput()
 // But I found I could not rely on it in the gameboySyncAutosave() function.
 void flushFatCache() {
     // This involves things from libfat which aren't normally visible
-    devoptab_t* devops = (devoptab_t*)GetDeviceOpTab ("sd");
-    PARTITION* partition = (PARTITION*)devops->deviceData;
-    _FAT_cache_flush(partition->cache); // Flush the cache manually
+    //devoptab_t* devops = (devoptab_t*)GetDeviceOpTab ("sd");
+    //PARTITION* partition = (PARTITION*)devops->deviceData;
+    //_FAT_cache_flush(partition->cache); // Flush the cache manually
+
+    // BlocksDS always writes to the SD card, it doesn't keep blocks in the
+    // cache
 }
 
 const char* gbKeyNames[] = {"-","A","B","Left","Right","Up","Down","Start","Select",
@@ -220,11 +222,11 @@ void controlsParseConfig(const char* line2) {
     }
 }
 void controlsPrintConfig(FILE* file) {
-    fiprintf(file, "config=%d\n", selectedKeyConfig);
+    fprintf(file, "config=%d\n", selectedKeyConfig);
     for (unsigned int i=0; i<keyConfigs.size(); i++) {
-        fiprintf(file, "(%s)\n", keyConfigs[i].name);
+        fprintf(file, "(%s)\n", keyConfigs[i].name);
         for (int j=0; j<NUM_DS_KEYS; j++) {
-            fiprintf(file, "%s=%s\n", dsKeyNames[j], gbKeyNames[keyConfigs[i].gbKeys[j]]);
+            fprintf(file, "%s=%s\n", dsKeyNames[j], gbKeyNames[keyConfigs[i].gbKeys[j]]);
         }
     }
 }
@@ -238,31 +240,31 @@ void redrawKeyConfigChooser() {
 
     consoleClear();
 
-    iprintf("Config: ");
+    printf("Config: ");
     if (option == -1)
         iprintfColored(CONSOLE_COLOR_LIGHT_YELLOW, "* %s *\n\n", config->name);
     else
-        iprintf("  %s  \n\n", config->name);
+        printf("  %s  \n\n", config->name);
 
-    iprintf("    Button   Function\n\n");
+    printf("    Button   Function\n\n");
 
     for (int i=0; i<NUM_DS_KEYS; i++) {
         int len = 8-strlen(dsKeyNames[i]);
         while (len > 0) {
-            iprintf(" ");
+            printf(" ");
             len--;
         }
         if (option == i)
             iprintfColored(CONSOLE_COLOR_LIGHT_YELLOW, "* %s | %s *\n", dsKeyNames[i], gbKeyNames[config->gbKeys[i]]);
         else
-            iprintf("  %s | %s  \n", dsKeyNames[i], gbKeyNames[config->gbKeys[i]]);
+            printf("  %s | %s  \n", dsKeyNames[i], gbKeyNames[config->gbKeys[i]]);
     }
-    iprintf("\n\nPress X to make a new config.");
+    printf("\n\nPress X to make a new config.");
     if (selectedKeyConfig != 0) /* can't erase the default */ {
-        iprintf("\n\nPress Y to delete this config.");
+        printf("\n\nPress Y to delete this config.");
     }
     if (keyConfigChooser_printMenuWarning)
-        iprintf("\n\nNo key is assigned to the menu!");
+        printf("\n\nNo key is assigned to the menu!");
 }
 
 void updateKeyConfigChooser() {
@@ -287,7 +289,7 @@ void updateKeyConfigChooser() {
         keyConfigs.push_back(KeyConfig(*config));
         selectedKeyConfig = keyConfigs.size()-1;
         char name[32];
-        siprintf(name, "Custom %d", keyConfigs.size()-1);
+        sprintf(name, "Custom %d", keyConfigs.size()-1);
         strcpy(keyConfigs.back().name, name);
         option = -1;
         redraw = true;
@@ -367,7 +369,7 @@ void redrawPaletteChooser() {
     memset(&menuConsole->fontBgGfx[menuConsole->fontCharOffset + 4*16], 0xCCCC, sizeof(u16)*16);
     memset(&menuConsole->fontBgGfx[menuConsole->fontCharOffset + 5*16], 0xDDDD, sizeof(u16)*16);
 
-    iprintf("%18s\n\n", (offset+2 > 0 ? "^^^^" : "    "));
+    printf("%18s\n\n", (offset+2 > 0 ? "^^^^" : "    "));
     for(int i = 2; i < 22; i++) {
         int index = offset + i;
         int palIndex = (((i-2)%4))*64 + ((i-2)>>2) + 9;
@@ -394,7 +396,7 @@ void redrawPaletteChooser() {
             *(dest++) = tile | TILE_PALETTE((((i-2)*4)%16)+2);
             *(dest++) = tile | TILE_PALETTE((((i-2)*4)%16)+3);
         } else {
-            iprintf("\n");
+            printf("\n");
             BG_PALETTE_SUB[palIndex]    = 0;
             BG_PALETTE_SUB[palIndex+16] = 0;
             BG_PALETTE_SUB[palIndex+32] = 0;
@@ -402,7 +404,7 @@ void redrawPaletteChooser() {
         }
     }
 
-    iprintf("\n%18s", (offset+22 < (int)customPalettes.size() ? "vvvv" : "    "));
+    printf("\n%18s", (offset+22 < (int)customPalettes.size() ? "vvvv" : "    "));
 }
 
 void updatePaletteChooser() {
@@ -491,17 +493,17 @@ void generalParseConfig(const char* line) {
 
 void generalPrintConfig(FILE* file) {
     if (romPath == 0)
-        fiprintf(file, "rompath=\n");
+        fprintf(file, "rompath=\n");
     else
-        fiprintf(file, "rompath=%s\n", romPath);
+        fprintf(file, "rompath=%s\n", romPath);
     if (biosPath == 0)
-        fiprintf(file, "biosfile=\n");
+        fprintf(file, "biosfile=\n");
     else
-        fiprintf(file, "biosfile=%s\n", biosPath);
+        fprintf(file, "biosfile=%s\n", biosPath);
     if (borderPath == 0)
-        fiprintf(file, "borderfile=\n");
+        fprintf(file, "borderfile=\n");
     else
-        fiprintf(file, "borderfile=%s\n", borderPath);
+        fprintf(file, "borderfile=%s\n", borderPath);
 }
 
 bool RGBStringToPalette(const char* RGBString, u16* palette) {
@@ -564,7 +566,7 @@ void palettesPrintConfig(FILE* file) {
     for (PaletteEntry pal : customPalettes) {
         char RGBString[40];
         paletteToRGBString(pal.palette, RGBString);
-        fiprintf(file, "%s=%s\n", pal.name, RGBString);
+        fprintf(file, "%s=%s\n", pal.name, RGBString);
     }
 }
 
@@ -625,18 +627,18 @@ bool writeConfigFile() {
     if (!file)
         return false;
 
-    fiprintf(file, "[general]\n");
+    fprintf(file, "[general]\n");
     generalPrintConfig(file);
-    fiprintf(file, "[console]\n");
+    fprintf(file, "[console]\n");
     menuPrintConfig(file);
-    fiprintf(file, "[controls]\n");
+    fprintf(file, "[controls]\n");
     controlsPrintConfig(file);
-    fiprintf(file, "[palettes]\n");
+    fprintf(file, "[palettes]\n");
     palettesPrintConfig(file);
     fclose(file);
 
     char nameBuf[100];
-    siprintf(nameBuf, "%s.cht", basename);
+    sprintf(nameBuf, "%s.cht", basename);
     saveCheats(nameBuf);
     return true;
 }
@@ -798,7 +800,7 @@ int loadRom(char* f)
 
         // Load cheats
         char nameBuf[100];
-        siprintf(nameBuf, "%s.cht", basename);
+        sprintf(nameBuf, "%s.cht", basename);
         loadCheats(nameBuf);
 
     } // !gbsMode
@@ -1086,12 +1088,12 @@ const char *mbcName[] = {"ROM","MBC1","MBC2","MBC3","MBC4","MBC5","MBC7","HUC3",
 
 void printRomInfo() {
     consoleClear();
-    iprintf("ROM Title: \"%s\"\n", romTitle);
-    iprintf("Cartridge type: %.2x (%s)\n", mapper, mbcName[MBC]);
-    iprintf("ROM Size: %.2x (%d banks)\n", romSize, numRomBanks);
-    iprintf("RAM Size: %.2x (%d banks)\n", ramSize, numRamBanks);
-    iprintf("Licensee: %04X\n", romLicensee);
-    iprintf("Checksum: %02X\n", romChecksum);
+    printf("ROM Title: \"%s\"\n", romTitle);
+    printf("Cartridge type: %.2x (%s)\n", mapper, mbcName[MBC]);
+    printf("ROM Size: %.2x (%d banks)\n", romSize, numRomBanks);
+    printf("RAM Size: %.2x (%d banks)\n", ramSize, numRamBanks);
+    printf("Licensee: %04X\n", romLicensee);
+    printf("Checksum: %02X\n", romChecksum);
 }
 
 const int STATE_VERSION = 5;
@@ -1133,9 +1135,9 @@ void saveState(int stateNum) {
     char statename[100];
 
     if (stateNum == -1)
-        siprintf(statename, "%s.yss", basename);
+        sprintf(statename, "%s.yss", basename);
     else
-        siprintf(statename, "%s.ys%d", basename, stateNum);
+        sprintf(statename, "%s.ys%d", basename, stateNum);
     outFile = fopen(statename, "w");
 
     if (outFile == 0) {
@@ -1202,9 +1204,9 @@ int loadState(int stateNum) {
     memset(&state, 0, sizeof(StateStruct));
 
     if (stateNum == -1)
-        siprintf(statename, "%s.yss", basename);
+        sprintf(statename, "%s.yss", basename);
     else
-        siprintf(statename, "%s.ys%d", basename, stateNum);
+        sprintf(statename, "%s.ys%d", basename, stateNum);
     inFile = fopen(statename, "r");
 
     if (inFile == 0) {
@@ -1318,9 +1320,9 @@ void deleteState(int stateNum) {
     char statename[100];
 
     if (stateNum == -1)
-        siprintf(statename, "%s.yss", basename);
+        sprintf(statename, "%s.yss", basename);
     else
-        siprintf(statename, "%s.ys%d", basename, stateNum);
+        sprintf(statename, "%s.ys%d", basename, stateNum);
     unlink(statename);
 }
 
@@ -1328,9 +1330,9 @@ bool checkStateExists(int stateNum) {
     char statename[256];
 
     if (stateNum == -1)
-        siprintf(statename, "%s.yss", basename);
+        sprintf(statename, "%s.yss", basename);
     else
-        siprintf(statename, "%s.ys%d", basename, stateNum);
+        sprintf(statename, "%s.ys%d", basename, stateNum);
     return access(statename, R_OK) == 0;
     /*
     file = fopen(statename, "r");
