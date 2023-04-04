@@ -26,7 +26,6 @@ void transferWaitingTimeoutFunc() {
 
 void packetHandler(int packetID, int readlength)
 {
-#if 0
     static char data[4096];
     // static int bytesRead = 0; // Not used
 
@@ -83,15 +82,14 @@ void packetHandler(int packetID, int readlength)
                 break;
         }
     }
-#endif
 }
 
 
 
-void enableNifi()
+bool enableNifi()
 {
-#if 0
-	Wifi_InitDefault(false);
+    if (!Wifi_InitDefault(false))
+        return false;
     Wifi_SetRawPacketMode(PACKET_MODE_NIFI);
 
 // Wifi_SetPromiscuousMode: Allows the DS to enter or leave a "promsicuous" mode, in which 
@@ -116,6 +114,7 @@ void enableNifi()
 
     transferWaiting = false;
     nifiEnabled = true;
+    return true;
 }
 
 void disableNifi() {

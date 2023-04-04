@@ -106,23 +106,14 @@ void initializeGameboy() {
         probingForBorder = false;
     }
     else {
-        switch(gbcModeOption) {
-            case 0: // GB
-                initGBMode();
-                break;
-            case 1: // GBC if needed
-                if (romSlot0[0x143] == 0xC0)
-                    initGBCMode();
-                else
-                    initGBMode();
-                break;
-            case 2: // GBC
-                if (romSlot0[0x143] == 0x80 || romSlot0[0x143] == 0xC0)
-                    initGBCMode();
-                else
-                    initGBMode();
-                break;
-        }
+        bool modeInit = romSlot0[0x143] == 0xC0;
+        if (gbcModeOption == 2)
+            modeInit = modeInit || romSlot0[0x143] == 0x80;
+
+        if (gbcModeOption != 0 && modeInit)
+            initGBCMode();
+        else
+            initGBMode();
 
         bool sgbEnhanced = romSlot0[0x14b] == 0x33 && romSlot0[0x146] == 0x03;
         if (sgbEnhanced && resultantGBMode != 2 && probingForBorder) {
@@ -131,7 +122,7 @@ void initializeGameboy() {
         else {
             probingForBorder = false;
         }
-    } // !gbsMode
+    }
 
     initMMU();
     initCPU();

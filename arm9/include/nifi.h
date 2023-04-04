@@ -9,6 +9,6 @@ extern volatile int nifiSendid;
 // Don't write directly
 extern bool nifiEnabled;
 
-void enableNifi();
+bool enableNifi();
 void disableNifi();
 void sendPacketByte(u8 command, u8 data);
