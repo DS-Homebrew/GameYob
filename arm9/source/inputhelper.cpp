@@ -103,11 +103,7 @@ void initInput()
     //fatInit(FAT_CACHE_SIZE, true);
     fatInitDefault();
 
-    if (isDSiMode())
-        maxLoadedRomBanks = 512; // 8 megabytes
-    else
-        maxLoadedRomBanks = 128; // 2 megabytes
-
+    maxLoadedRomBanks = (isDSiMode() ? 512 : 128);
     romBankSlots = (u8*)malloc(maxLoadedRomBanks*0x4000);
 }
 
@@ -647,8 +643,10 @@ bool writeConfigFile() {
 void loadBios(const char* filename) {
     FILE* file = fopen(filename, "rb");
     biosExists = file != NULL;
-    if (biosExists)
+    if (biosExists) {
         fread(bios, 1, 0x900, file);
+        fclose(file);
+    }
 }
 
 int loadRom(char* f)

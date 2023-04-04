@@ -65,13 +65,7 @@ void selectRom() {
     saveFileChooserState(&romChooserState);
 
     if (!biosExists) {
-        FILE* file;
-        file = fopen("gbc_bios.bin", "rb");
-        biosExists = file != NULL;
-        if (biosExists) {
-            fread(bios, 1, 0x900, file);
-            fclose(file);
-        }
+        loadBios("gbc_bios.bin");
     }
 
     loadRom(filename);

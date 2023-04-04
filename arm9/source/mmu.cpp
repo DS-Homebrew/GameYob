@@ -608,13 +608,7 @@ void initMMU()
     readFunc = mbcReads[MBC];
     writeFunc = mbcWrites[MBC];
 
-    biosOn = false;
-    if (biosExists && !probingForBorder && !gbsMode) {
-        if (biosEnabled == 2)
-            biosOn = true;
-        else if (biosEnabled == 1 && resultantGBMode == 0)
-            biosOn = true;
-    }
+    biosOn = (biosExists && !probingForBorder && !gbsMode && (biosEnabled == 2 || (biosEnabled == 1 && resultantGBMode == 0)));
     mapMemory();
     for (int i=0; i<8; i++)
         memset(wram[i], 0, 0x1000);
@@ -1192,10 +1186,6 @@ static s16 gb_clamp_int(s16 min, s16 value, s16 max)
     return value;
 }
 
-static s16 gb_min_int(s16 a, s16 b) { return (a < b) ? a : b; }
-
-static s16 gb_max_int(s16 a, s16 b) { return (a > b) ? a : b; }
-
 //--------------------------------------------------------------------
 
 static u8 gb_cam_matrix_process(u8 value, u8 x, u8 y, const u8* CAM_REG)
@@ -1301,7 +1291,7 @@ void system_getCamera(u8* memory, const u8* camRegisters)
             }
             for(i = 0; i < GBCAM_SENSOR_W; i++) for(j = 0; j < GBCAM_SENSOR_H; j++)
             {
-                ms = temp_buf[i][gb_min_int(j+1,GBCAM_SENSOR_H-1)];
+                ms = temp_buf[i][std::min(j+1,GBCAM_SENSOR_H-1)];
                 px = temp_buf[i][j];
 
                 int value = 0;
@@ -1317,15 +1307,15 @@ void system_getCamera(u8* memory, const u8* camRegisters)
         {
             for(i = 0; i < GBCAM_SENSOR_W; i++) for(j = 0; j < GBCAM_SENSOR_H; j++)
             {
-                mw = gb_cam_retina_output_buf[gb_max_int(0,i-1)][j];
-                me = gb_cam_retina_output_buf[gb_min_int(i+1,GBCAM_SENSOR_W-1)][j];
+                mw = gb_cam_retina_output_buf[std::max(0,i-1)][j];
+                me = gb_cam_retina_output_buf[std::min(i+1,GBCAM_SENSOR_W-1)][j];
                 px = gb_cam_retina_output_buf[i][j];
 
                 temp_buf[i][j] = gb_clamp_int(0,px+((2*px-mw-me)*EDGE_alpha),255);
             }
             for(i = 0; i < GBCAM_SENSOR_W; i++) for(j = 0; j < GBCAM_SENSOR_H; j++)
             {
-                ms = temp_buf[i][gb_min_int(j+1,GBCAM_SENSOR_H-1)];
+                ms = temp_buf[i][std::min(j+1,GBCAM_SENSOR_H-1)];
                 px = temp_buf[i][j];
 
                 int value = 0;
@@ -1341,10 +1331,10 @@ void system_getCamera(u8* memory, const u8* camRegisters)
         {
             for(i = 0; i < GBCAM_SENSOR_W; i++) for(j = 0; j < GBCAM_SENSOR_H; j++)
             {
-                ms = gb_cam_retina_output_buf[i][gb_min_int(j+1,GBCAM_SENSOR_H-1)];
-                mn = gb_cam_retina_output_buf[i][gb_max_int(0,j-1)];
-                mw = gb_cam_retina_output_buf[gb_max_int(0,i-1)][j];
-                me = gb_cam_retina_output_buf[gb_min_int(i+1,GBCAM_SENSOR_W-1)][j];
+                ms = gb_cam_retina_output_buf[i][std::min(j+1,GBCAM_SENSOR_H-1)];
+                mn = gb_cam_retina_output_buf[i][std::max(0,j-1)];
+                mw = gb_cam_retina_output_buf[std::max(0,i-1)][j];
+                me = gb_cam_retina_output_buf[std::min(i+1,GBCAM_SENSOR_W-1)][j];
                 px = gb_cam_retina_output_buf[i][j];
 
                 temp_buf[i][j] = gb_clamp_int(-128,px+((4*px-mw-me-mn-ms)*EDGE_alpha),127);
