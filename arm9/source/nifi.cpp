@@ -120,7 +120,6 @@ bool enableNifi()
 void disableNifi() {
     Wifi_DisableWifi();
     nifiEnabled = false;
-#endif
 }
 
 
