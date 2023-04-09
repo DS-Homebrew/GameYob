@@ -24,7 +24,6 @@ DEFINES		:=
 
 LIBS		:= -ldswifi9 -lstdc++ -lnds9 -lc
 LIBDIRS		:=	extlib/dswifi \
-				$(BLOCKSDS)/libs/libstdc++9 \
 				$(BLOCKSDS)/libs/libnds
 
 # Build artifacts

@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: skylyrac/blocksds:slim-latest
+    container: skylyrac/blocksds:dev-latest
     name: Build with BlocksDS using its docker container
     outputs:
       commit_tag: ${{ steps.git.outputs.commit_tag }}
@@ -52,7 +52,7 @@ jobs:
       - name: Publish build to GH Actions
         uses: actions/upload-artifact@v2
         with:
-          path: NeoDS.nds
+          path: gameyob.nds
           name: neods-nightly
 
   send_webhook:
