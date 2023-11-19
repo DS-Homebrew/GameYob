@@ -5,41 +5,43 @@
 BLOCKSDS	?= /opt/blocksds/core
 BLOCKSDSEXT	?= /opt/blocksds/external
 
+WONDERFUL_TOOLCHAIN	?= /opt/wonderful
+ARM_NONE_EABI_PATH	?= $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-arm-none-eabi/bin/
+
 # Source code paths
 # -----------------
 
-SOURCEDIRS	:= arm9/source
-INCLUDEDIRS	:= include arm9/include
-GFXDIRS		:= arm9/gfx
-BINDIRS		:=
-AUDIODIRS	:=
+SOURCEDIRS	?= arm9/source
+INCLUDEDIRS	?= include arm9/include
+GFXDIRS		?= arm9/gfx
+BINDIRS		?=
+AUDIODIRS	?=
 
 # Defines passed to all files
 # ---------------------------
 
-DEFINES		:=
+DEFINES		?=
 
 # Libraries
 # ---------
 
-LIBS		:= -ldswifi9 -lstdc++ -lnds9 -lc
-LIBDIRS		:=	extlib/dswifi \
-				$(BLOCKSDS)/libs/libnds
+LIBS		?= -ldswifi9 -lnds9
+LIBDIRS		+= extlib/dswifi $(BLOCKSDS)/libs/libnds
 
 # Build artifacts
 # ---------------
 
-BUILDDIR	:= build/arm9
-NAME		:= arm9
-ELF			:= build/$(NAME).elf
-DUMP		:= build/$(NAME).dump
-MAP			:= build/$(NAME).map
-SOUNDBANKDIR	:=
+BUILDDIR		:= build/arm9
+NAME			:= arm9
+ELF				:= build/$(NAME).elf
+DUMP			:= build/$(NAME).dump
+MAP				:= build/$(NAME).map
+SOUNDBANKDIR	:= $(BUILDDIR)/maxmod
 
 # Tools
 # -----
 
-PREFIX		:= arm-none-eabi-
+PREFIX		:= $(ARM_NONE_EABI_PATH)arm-none-eabi-
 CC			:= $(PREFIX)gcc
 CXX			:= $(PREFIX)g++
 OBJDUMP		:= $(PREFIX)objdump
@@ -87,9 +89,11 @@ ARCH		:= -march=armv5te -mtune=arm946e-s
 WARNFLAGS	:= -Wall
 
 ifeq ($(SOURCES_CPP),)
-    LD	:= $(CC)
+    LD		:= $(CC)
+    LIBS	+= -lc
 else
-    LD	:= $(CXX)
+    LD		:= $(CXX)
+    LIBS	+= -lstdc++ -lc
 endif
 
 INCLUDEFLAGS	:= $(foreach path,$(INCLUDEDIRS),-I$(path)) \
@@ -175,10 +179,20 @@ $(BUILDDIR)/%.c.o : %.c
 	@$(MKDIR) -p $(@D)
 	$(V)$(CC) $(CFLAGS) -MMD -MP -c -o $@ $<
 
+$(BUILDDIR)/%.arm.c.o : %.arm.c
+	@echo "  CC.9    $<"
+	@$(MKDIR) -p $(@D)
+	$(V)$(CC) $(CFLAGS) -MMD -MP -marm -mlong-calls -c -o $@ $<
+
 $(BUILDDIR)/%.cpp.o : %.cpp
 	@echo "  CXX.9   $<"
 	@$(MKDIR) -p $(@D)
 	$(V)$(CXX) $(CXXFLAGS) -MMD -MP -c -o $@ $<
+
+$(BUILDDIR)/%.arm.cpp.o : %.arm.cpp
+	@echo "  CXX.9   $<"
+	@$(MKDIR) -p $(@D)
+	$(V)$(CXX) $(CXXFLAGS) -MMD -MP -marm -mlong-calls -c -o $@ $<
 
 $(BUILDDIR)/%.bin.o $(BUILDDIR)/%_bin.h : %.bin
 	@echo "  BIN2C.9 $<"

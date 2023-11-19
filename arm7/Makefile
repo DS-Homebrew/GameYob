@@ -5,24 +5,26 @@
 BLOCKSDS	?= /opt/blocksds/core
 BLOCKSDSEXT	?= /opt/blocksds/external
 
+WONDERFUL_TOOLCHAIN	?= /opt/wonderful
+ARM_NONE_EABI_PATH	?= $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-arm-none-eabi/bin/
+
 # Source code paths
 # -----------------
 
-SOURCEDIRS	:= arm7/source 
-INCLUDEDIRS	:= arm7/include include
-BINDIRS		:=
+SOURCEDIRS	?= arm7/source
+INCLUDEDIRS	?= arm7/include
+BINDIRS		?=
 
 # Defines passed to all files
 # ---------------------------
 
-DEFINES		:=
+DEFINES		?=
 
 # Libraries
 # ---------
 
-LIBS		:=	-ldswifi7 -lnds7 -lc
-LIBDIRS		:=	extlib/dswifi \
-				$(BLOCKSDS)/libs/libnds
+LIBS		?= -ldswifi7 -lnds7
+LIBDIRS		+= extlib/dswifi $(BLOCKSDS)/libs/libnds
 
 # Build artifacts
 # -----------------
@@ -36,7 +38,7 @@ MAP			:= build/$(NAME).map
 # Tools
 # -----
 
-PREFIX		:= arm-none-eabi-
+PREFIX		:= $(ARM_NONE_EABI_PATH)arm-none-eabi-
 CC			:= $(PREFIX)gcc
 CXX			:= $(PREFIX)g++
 OBJDUMP		:= $(PREFIX)objdump
@@ -74,9 +76,11 @@ ARCH		:= -mcpu=arm7tdmi -mtune=arm7tdmi
 WARNFLAGS	:= -Wall
 
 ifeq ($(SOURCES_CPP),)
-    LD	:= $(CC)
+    LD		:= $(CC)
+    LIBS	+= -lc
 else
-    LD	:= $(CXX)
+    LD		:= $(CXX)
+    LIBS	+= -lstdc++ -lc
 endif
 
 INCLUDEFLAGS	:= $(foreach path,$(INCLUDEDIRS),-I$(path)) \
@@ -154,10 +158,20 @@ $(BUILDDIR)/%.c.o : %.c
 	@$(MKDIR) -p $(@D)
 	$(V)$(CC) $(CFLAGS) -MMD -MP -c -o $@ $<
 
+$(BUILDDIR)/%.arm.c.o : %.arm.c
+	@echo "  CC.7    $<"
+	@$(MKDIR) -p $(@D)
+	$(V)$(CC) $(CFLAGS) -MMD -MP -marm -mlong-calls -c -o $@ $<
+
 $(BUILDDIR)/%.cpp.o : %.cpp
 	@echo "  CXX.7   $<"
 	@$(MKDIR) -p $(@D)
 	$(V)$(CXX) $(CXXFLAGS) -MMD -MP -c -o $@ $<
+
+$(BUILDDIR)/%.arm.cpp.o : %.arm.cpp
+	@echo "  CXX.7   $<"
+	@$(MKDIR) -p $(@D)
+	$(V)$(CXX) $(CXXFLAGS) -MMD -MP -marm -mlong-calls -c -o $@ $<
 
 $(BUILDDIR)/%.bin.o $(BUILDDIR)/%_bin.h : %.bin
 	@echo "  BIN2C.7 $<"
