@@ -12,7 +12,7 @@ ARM_NONE_EABI_PATH	?= $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-arm-none-eabi/bin/
 # -----------------
 
 SOURCEDIRS	?= arm7/source
-INCLUDEDIRS	?= arm7/include
+INCLUDEDIRS	?= arm7/include include
 BINDIRS		?=
 
 # Defines passed to all files

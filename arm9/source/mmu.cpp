@@ -1142,7 +1142,7 @@ void doRumble(bool rumbleVal)
 }
 
 void system_enableCamera(int index) {
-
+    if (!isDSiMode()) return;
     if (index == camActive) return;
 
     if (!camInit) {
