@@ -1322,8 +1322,8 @@ void drawScreen()
             }
         } else {
             for (int i = 0; i < 4; i++) {
-                *(bdst++) = gbc_lut[*(bsrc++)];
-                *(sdst++) = gbc_lut[*(ssrc++)];
+                *(bdst++) = gbc_lut[(*(bsrc)&0x7FFF)] | (*(bsrc++)&0x8000);
+                *(sdst++) = gbc_lut[(*(ssrc)&0x7FFF)] | (*(ssrc++)&0x8000);
             }
         }
     }
@@ -1702,7 +1702,7 @@ void updateBgPalette_GBC(int paletteid, u8* data) {
     u16* dest = BG_PALETTE+paletteid*16+5;
     u16* src = ((u16*)data)+paletteid*4;
     for (int i=0; i<4; i++)
-        *(dest++) = *(src++)&0x7FFF;
+        *(dest++) = *(src++);
 }
 void updateSprPalette(int paletteid, u8* data, u8 dmgPal) {
     int src = paletteid;
