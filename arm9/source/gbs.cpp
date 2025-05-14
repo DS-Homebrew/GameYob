@@ -24,7 +24,6 @@ u8 gbsSelectedSong;
 int gbsPlayingSong;
 
 PrintConsole* gbsConsole = 0;
-extern PrintConsole defaultConsole; // Defined in libnds
 
 // private
 
@@ -106,10 +105,10 @@ void gbsReadHeader() {
 void gbsInit() {
     if (gbsConsole == 0) {
         gbsConsole = (PrintConsole*)malloc(sizeof(PrintConsole));
-        memcpy(gbsConsole, &defaultConsole, sizeof(PrintConsole));
+        memcpy(gbsConsole, consoleGetDefault(), sizeof(PrintConsole));
     }
     videoSetMode(MODE_0_2D);
-    consoleInit(gbsConsole, gbsConsole->bgLayer, BgType_Text4bpp, BgSize_T_256x256, gbsConsole->mapBase, gbsConsole->gfxBase, true, true);
+    consoleInit(gbsConsole, 0, BgType_Text4bpp, BgSize_T_256x256, 22, 3, true, true);
     setPrintConsole(gbsConsole);
     videoBgEnable(0);
 

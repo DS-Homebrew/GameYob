@@ -34,6 +34,8 @@ u8 lfsr7NoiseSample[] ALIGN(4) = {
 // If the arm7 binary hits its size limit, this may need to be reworked.
 #include "noise.h"
 
+void doCommand(u32 command);
+void startChannel(int c);
 
 // Callback for hyperSound / Sound Fix, which works with arm9 to synchronize 
 // sound to the cycle.

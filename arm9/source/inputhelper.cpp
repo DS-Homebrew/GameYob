@@ -1,5 +1,5 @@
 #include <nds.h>
-#include <fatfs.h>
+#include <fat.h>
 
 #include <vector>
 #include <stdio.h>
