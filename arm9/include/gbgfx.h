@@ -6,6 +6,8 @@ enum Icons {
     ICON_PRINTER
 };
 
+extern u16* colorTable;
+
 extern volatile int dsFrameCounter;
 
 extern int interruptWaitMode;

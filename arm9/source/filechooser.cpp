@@ -443,7 +443,8 @@ end:
     closedir(dp);
     consoleClear();
     consoleSelectedRow = -1;
-    setBackdropColorSub(RGB15(0,0,0)); // Sometimes needed to un-blueify the screen
+	extern u16* colorTable;
+    setBackdropColorSub(colorTable ? colorTable[RGB15(0,0,0) % 0x8000] : RGB15(0,0,0)); // Sometimes needed to un-blueify the screen
     fileChooserOn = false;
     return retval;
 }

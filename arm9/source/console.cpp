@@ -863,6 +863,11 @@ void setupUnscaledScreens() {
         videoBgDisableSub(3);
         setPrintConsole(menuConsole);
         BG_PALETTE_SUB[8*16 - 1] = RGB15(17,17,17); // Grey (replaces a color established in consoleDemoInit)
+		if (colorTable) {
+			for (int i = 0; i < 256; i++) {
+				BG_PALETTE_SUB[i] = colorTable[BG_PALETTE_SUB[i] % 0x8000];
+			}
+		}
         consoleInitialized = true;
     }
 

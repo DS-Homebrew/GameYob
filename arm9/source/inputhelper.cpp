@@ -103,6 +103,31 @@ void initInput()
     //fatInit(FAT_CACHE_SIZE, true);
     fatInitDefault();
 
+	const char* txtPath = "/_nds/colorLut/currentSetting.txt";
+	if (access(txtPath, F_OK) == 0) {
+		// Load color LUT
+		char lutName[128] = {0};
+		FILE* file = fopen(txtPath, "rb");
+		fread(lutName, 1, 128, file);
+		fclose(file);
+
+		char colorLutPath[256];
+		sprintf(colorLutPath, "/_nds/colorLut/%s.lut", lutName);
+
+		if (access(colorLutPath, F_OK) == 0) {
+			file = fopen(colorLutPath, "rb");
+			fseek(file, 0, SEEK_END);
+			off_t fsize = ftell(file);
+			fseek(file, 0, SEEK_SET);
+
+			if (fsize == 0x10000) {
+				colorTable = new u16[0x8000];
+				fread(colorTable, 1, 0x10000, file);
+			}
+			fclose(file);
+		}
+	}
+
     maxLoadedRomBanks = (isDSiMode() ? 512 : 128);
     romBankSlots = (u8*)malloc(maxLoadedRomBanks*0x4000);
 }

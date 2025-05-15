@@ -22,7 +22,9 @@
 #include "color_lut.h"
 
 
-#define BACKDROP_COLOUR RGB15(0,0,0)
+u16* colorTable = NULL;
+
+#define BACKDROP_COLOUR (colorTable ? colorTable[RGB15(0,0,0) % 0x8000] : RGB15(0,0,0))
 
 const int map_base[] = {1, 2};
 const int color0_map_base[] = {3, 4};
@@ -393,9 +395,9 @@ void doHBlank(int line) {
         // Change the backdrop color for a certain row.
         // This is used in the file selection menu.
         if (line/8 == consoleSelectedRow)
-            setBackdropColorSub(RGB15(0,0,31));
+            setBackdropColorSub(colorTable ? colorTable[RGB15(0,0,31) % 0x8000] : RGB15(0,0,31));
         else
-            setBackdropColorSub(RGB15(0,0,0));
+            setBackdropColorSub(colorTable ? colorTable[RGB15(0,0,0) % 0x8000] : RGB15(0,0,0));
     }
 
     if (gbGraphicsDisabled || hblankDisabled)
@@ -538,7 +540,7 @@ void initGFX()
         offMap[i] = 15<<12;
     }
     // Off map palette
-    BG_PALETTE[OFF_MAP_PALETTE_INDEX] = RGB15(31,31,31);
+    BG_PALETTE[OFF_MAP_PALETTE_INDEX] = colorTable ? colorTable[RGB15(31,31,31) % 0x8000] : RGB15(31,31,31);
 
     for (int i=0; i<128; i++)
         sprites[i].attr0 = ATTR0_DISABLED;
@@ -787,11 +789,11 @@ void clearGFX() {
     if (loadedBorderType) {
         // Make it white if there's a border loaded.
         // I could use the backdrop, but that messes with SGB borders.
-        BG_PALETTE[OFF_MAP_PALETTE_INDEX] = RGB15(31,31,31);
+        BG_PALETTE[OFF_MAP_PALETTE_INDEX] = colorTable ? colorTable[RGB15(31,31,31) % 0x8000] : RGB15(31,31,31);
     }
     else {
         // Otherwise make it black.
-        BG_PALETTE[OFF_MAP_PALETTE_INDEX] = RGB15(0,0,0);
+        BG_PALETTE[OFF_MAP_PALETTE_INDEX] = colorTable ? colorTable[RGB15(0,0,0) % 0x8000] : RGB15(0,0,0);
     }
     BG_CNT(0) = BG_MAP_BASE(off_map_base) | 3;
     videoBgEnable(0);
@@ -871,6 +873,16 @@ void displayIcon(int iconid) {
             return;
         case ICON_PRINTER:
             gfx = printerIconTiles;
+			static bool colorTableUsed = false;
+			if (!colorTableUsed) {
+				if (colorTable) {
+					for (int i = 0; i < printerIconPalLen/2; i++) {
+						u16* pal = (u16*)printerIconPal;
+						pal[i] = colorTable[pal[i] % 0x8000];
+					}
+				}
+				colorTableUsed = true;
+			}
             pal = printerIconPal;
             break;
         default:
@@ -942,8 +954,9 @@ int loadBorder(const char* filename) {
         fread(buffer, 2, 0x100, file);
         u16* src = buffer;
         for (int i=0; i<256; i++) {
-            u16 val = *(src++);
-            BG_GFX[0x20000+y*256+i] = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
+            const u16 val = *(src++);
+			const u16 pal = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
+            BG_GFX[0x20000+y*256+i] = colorTable ? colorTable[pal % 0x8000] : pal;
         }
     }
     for (int y=167; y>=24; y--) {
@@ -951,13 +964,15 @@ int loadBorder(const char* filename) {
         fread(buffer, 2, 256, file);
         u16* src = buffer;
         for (int i=0; i<48; i++) {
-            u16 val = *(src++);
-            BG_GFX[0x20000+y*256+i] = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
+            const u16 val = *(src++);
+			const u16 pal = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
+            BG_GFX[0x20000+y*256+i] = colorTable ? colorTable[pal % 0x8000] : pal;
         }
         src += 160;
         for (int i=208; i<256; i++) {
-            u16 val = *(src++);
-            BG_GFX[0x20000+y*256+i] = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
+            const u16 val = *(src++);
+			const u16 pal = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
+            BG_GFX[0x20000+y*256+i] = colorTable ? colorTable[pal % 0x8000] : pal;
         }
     }
     for (int y=23; y>=0; y--) {
@@ -965,8 +980,9 @@ int loadBorder(const char* filename) {
         fread(buffer, 2, 0x100, file);
         u16* src = buffer;
         for (int i=0; i<256; i++) {
-            u16 val = *(src++);
-            BG_GFX[0x20000+y*256+i] = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
+            const u16 val = *(src++);
+			const u16 pal = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
+            BG_GFX[0x20000+y*256+i] = colorTable ? colorTable[pal % 0x8000] : pal;
         }
     }
 
@@ -1102,7 +1118,8 @@ void setGFXMask(int mask) {
     if (gfxMask == 0) {
         if (loadedBorderType != BORDER_NONE) {
             videoBgEnable(3);
-            BG_PALETTE[0] = bgPaletteData[0] | bgPaletteData[1]<<8;
+			const u16 pal = bgPaletteData[0] | bgPaletteData[1]<<8;
+			BG_PALETTE[0] = colorTable ? colorTable[pal % 0x8000] : pal;
         }
         winPosY = -1;
     }
@@ -1169,6 +1186,13 @@ void setSgbMap(u8* src) {
         borderMap[i] = tile | (paletteid<<12) | (flipX<<10) | (flipY<<11);
     }
 
+	if (colorTable) {
+		u16* palSrc = (u16*)src;
+		for (int i = 0x400; i < 0x440; i++) {
+			palSrc[i] = colorTable[palSrc[i] % 0x8000];
+		}
+	}
+
     DC_FlushRange(src+0x800, 0x80);
     dmaCopy(src+0x800, BG_PALETTE+8*16, 0x80);
 
@@ -1176,7 +1200,8 @@ void setSgbMap(u8* src) {
     if (sgbBordersEnabled) {
         loadSGBBorder();
 
-        BG_PALETTE[0] = bgPaletteData[0] | bgPaletteData[1]<<8;
+		const u16 pal = bgPaletteData[0] | bgPaletteData[1]<<8;
+        BG_PALETTE[0] = colorTable ? colorTable[pal % 0x8000] : pal;
         if (probingForBorder) {
             probingForBorder = false;
             resetGameboy();
@@ -1694,7 +1719,8 @@ void updateBgPalette(int paletteid, u8* data, u8 dmgPal) {
     for (int i=0; i<4; i++) {
         int id = (dmgPal>>(i*2))&3;
 
-        BG_PALETTE[((paletteid)*16)+i+5] = data[(paletteid*8)+(id*2)] | data[(paletteid*8)+(id*2)+1]<<8;
+        const u16 pal = data[(paletteid*8)+(id*2)] | data[(paletteid*8)+(id*2)+1]<<8;
+		BG_PALETTE[((paletteid)*16)+i+5] = colorTable ? colorTable[pal % 0x8000] : pal;
     }
 }
 
@@ -1702,7 +1728,7 @@ void updateBgPalette_GBC(int paletteid, u8* data) {
     u16* dest = BG_PALETTE+paletteid*16+5;
     u16* src = ((u16*)data)+paletteid*4;
     for (int i=0; i<4; i++)
-        *(dest++) = *(src++);
+        dest[i] = colorTable ? colorTable[src[i] % 0x8000] : src[i];
 }
 void updateSprPalette(int paletteid, u8* data, u8 dmgPal) {
     int src = paletteid;
@@ -1715,7 +1741,8 @@ void updateSprPalette(int paletteid, u8* data, u8 dmgPal) {
         else
             id = i;
 
-        SPRITE_PALETTE[((paletteid)*16)+i+4] = data[(src*8)+(id*2)] | data[(src*8)+(id*2)+1]<<8;
+        const u16 pal = data[(src*8)+(id*2)] | data[(src*8)+(id*2)+1]<<8;
+		SPRITE_PALETTE[((paletteid)*16)+i+4] = colorTable ? colorTable[pal % 0x8000] : pal;
     }
 }
 
