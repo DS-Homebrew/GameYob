@@ -403,14 +403,14 @@ ConsoleSubMenu menuList[] = {
     },
     {
         "Settings",
-        9,
+        8,
         {
             {"Key Config", keyConfigFunc, 0, {}, 0},
             {"Manage Cheats", cheatFunc, 0, {}, 0},
             {"Rumble Pak", setRumbleFunc, 4, {"Off","Low","Mid","High"}, 2},
             {"GB Camera", setCamera, 3, {"Off", "Inner","Outer"}, 0},
             {"Console Output", consoleOutputFunc, 4, {"Off","Time","FPS+Time","Debug"}, 0},
-            {"Wireless Link", nifiEnableFunc, 2, {"Off","On"}, 0},
+            //{"Wireless Link", nifiEnableFunc, 2, {"Off","On"}, 0},
             {"GB Printer", printerEnableFunc, 2, {"Off","On"}, 1},
             {"Autosaving", setAutoSaveFunc, 2, {"Off","On"}, 1},
             {"Save Settings", saveSettingsFunc, 0, {}, 0}

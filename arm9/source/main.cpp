@@ -204,8 +204,8 @@ int main(int argc, char* argv[])
     fifoSendValue32(FIFO_USER_03, ((u32)sharedData)&0x00ffffff);
 
     initInput();
-    setMenuDefaults();
     readConfigFile();
+    setMenuDefaults();
     swiWaitForVBlank();
     swiWaitForVBlank();
     // initGFX is called in initializeGameboy, but I also call it from here to
