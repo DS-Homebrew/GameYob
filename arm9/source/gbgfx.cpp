@@ -956,7 +956,7 @@ int loadBorder(const char* filename) {
         for (int i=0; i<256; i++) {
             const u16 val = *(src++);
 			const u16 pal = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
-            BG_GFX[0x20000+y*256+i] = colorTable ? colorTable[pal % 0x8000] : pal;
+            BG_GFX[0x20000+y*256+i] = colorTable ? (colorTable[pal % 0x8000] | BIT(15)) : pal;
         }
     }
     for (int y=167; y>=24; y--) {
@@ -966,13 +966,13 @@ int loadBorder(const char* filename) {
         for (int i=0; i<48; i++) {
             const u16 val = *(src++);
 			const u16 pal = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
-            BG_GFX[0x20000+y*256+i] = colorTable ? colorTable[pal % 0x8000] : pal;
+            BG_GFX[0x20000+y*256+i] = colorTable ? (colorTable[pal % 0x8000] | BIT(15)) : pal;
         }
         src += 160;
         for (int i=208; i<256; i++) {
             const u16 val = *(src++);
 			const u16 pal = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
-            BG_GFX[0x20000+y*256+i] = colorTable ? colorTable[pal % 0x8000] : pal;
+            BG_GFX[0x20000+y*256+i] = colorTable ? (colorTable[pal % 0x8000] | BIT(15)) : pal;
         }
     }
     for (int y=23; y>=0; y--) {
@@ -982,7 +982,7 @@ int loadBorder(const char* filename) {
         for (int i=0; i<256; i++) {
             const u16 val = *(src++);
 			const u16 pal = ((val>>10)&0x1f) | ((val)&(0x1f<<5)) | (val&0x1f)<<10 | BIT(15);
-            BG_GFX[0x20000+y*256+i] = colorTable ? colorTable[pal % 0x8000] : pal;
+            BG_GFX[0x20000+y*256+i] = colorTable ? (colorTable[pal % 0x8000] | BIT(15)) : pal;
         }
     }
 
