@@ -120,7 +120,7 @@ void initInput()
 			off_t fsize = ftell(file);
 			fseek(file, 0, SEEK_SET);
 
-			if (fsize == 0x10000) {
+			if ((fsize >= 0x10000 && fsize < 0x20000) || fsize == 0x20000) {
 				colorTable = new u16[0x8000];
 				fread(colorTable, 1, 0x10000, file);
 			}
