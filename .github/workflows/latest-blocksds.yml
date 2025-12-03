@@ -32,9 +32,6 @@ jobs:
       - name: Build package
         id: build
         run: |
-          cd extlib/dswifi
-          make VERBOSE=1
-          cd ../../
           make VERBOSE=1
       - name: Set Git Defines
         id: git
