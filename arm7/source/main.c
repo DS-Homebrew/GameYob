@@ -30,7 +30,7 @@
 
 ---------------------------------------------------------------------------------*/
 #include <nds.h>
-#include <dswifi7.h>
+// #include <dswifi7.h>
 #include "common.h"
 
 void installGameboySoundFIFO();
@@ -55,8 +55,8 @@ void VblankHandler(void) {
         sharedData->scaleTransferReady = false;
     }
 
-scaling_end:
-    Wifi_Update();
+// scaling_end:
+//     Wifi_Update();
 }
 
 void VcountHandler() {
@@ -95,7 +95,7 @@ int main() {
 
     SetYtrigger(80);
 
-    installWifiFIFO();
+    // installWifiFIFO();
     installSoundFIFO();
 
     installSystemFIFO();

@@ -25,8 +25,8 @@ DEFINES		?=
 # Libraries
 # ---------
 
-LIBS		?= -ldswifi9 -lnds9
-LIBDIRS		+= extlib/dswifi $(BLOCKSDS)/libs/libnds
+LIBS		?= -lnds9
+LIBDIRS		+= $(BLOCKSDS)/libs/libnds
 
 # Build artifacts
 # ---------------

@@ -1,5 +1,5 @@
 #include <nds.h>
-#include <dswifi9.h>
+// #include <dswifi9.h>
 #include "nifi.h"
 #include "mmu.h"
 #include "main.h"
@@ -20,12 +20,12 @@ volatile bool readyToSend=true;
 int lastSendid = 0xff;
 
 void transferWaitingTimeoutFunc() {
-    transferWaiting = false;
-    timerStop(2);
+    // transferWaiting = false;
+    // timerStop(2);
 }
 
 void packetHandler(int packetID, int readlength)
-{
+{ /*
     static char data[4096];
     // static int bytesRead = 0; // Not used
 
@@ -81,13 +81,13 @@ void packetHandler(int packetID, int readlength)
                 //printLog("Unknown packet\n");
                 break;
         }
-    }
+    } */
 }
 
 
 
 bool enableNifi()
-{
+{ /*
     if (!Wifi_InitDefault(false))
         return false;
     Wifi_SetRawPacketMode(PACKET_MODE_NIFI);
@@ -114,17 +114,18 @@ bool enableNifi()
 
     transferWaiting = false;
     nifiEnabled = true;
-    return true;
+    return true; */
+	return false;
 }
 
 void disableNifi() {
-    Wifi_DisableWifi();
-    nifiEnabled = false;
+    // Wifi_DisableWifi();
+    // nifiEnabled = false;
 }
 
 
 void sendPacketByte(u8 command, u8 data)
-{
+{ /*
     if (!nifiEnabled)
         return;
     unsigned char buffer[8];
@@ -135,5 +136,5 @@ void sendPacketByte(u8 command, u8 data)
     *((int*)(buffer+4)) = nifiSendid;
     //printLog("%d: Sent %x\n", ioRam[0x02]&1, data);
     if (Wifi_RawTxFrame(8, 0x0014, (unsigned short *)buffer) != 0)
-        printLog("Nifi send error\n");
+        printLog("Nifi send error\n"); */
 }
